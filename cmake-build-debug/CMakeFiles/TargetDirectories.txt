@@ -1,0 +1,15 @@
+C:/Users/MinhNguyen/CLionProjects/NESEmulator/cmake-build-debug/CMakeFiles/NESEmulator.dir
+C:/Users/MinhNguyen/CLionProjects/NESEmulator/cmake-build-debug/CMakeFiles/TestDisplayTest.dir
+C:/Users/MinhNguyen/CLionProjects/NESEmulator/cmake-build-debug/CMakeFiles/PPUTest.dir
+C:/Users/MinhNguyen/CLionProjects/NESEmulator/cmake-build-debug/CMakeFiles/LoadStoreTest.dir
+C:/Users/MinhNguyen/CLionProjects/NESEmulator/cmake-build-debug/CMakeFiles/RegisterTransferTest.dir
+C:/Users/MinhNguyen/CLionProjects/NESEmulator/cmake-build-debug/CMakeFiles/StackOperationTest.dir
+C:/Users/MinhNguyen/CLionProjects/NESEmulator/cmake-build-debug/CMakeFiles/LogicalTest.dir
+C:/Users/MinhNguyen/CLionProjects/NESEmulator/cmake-build-debug/CMakeFiles/ArithmeticTest.dir
+C:/Users/MinhNguyen/CLionProjects/NESEmulator/cmake-build-debug/CMakeFiles/IncrementDecrementTest.dir
+C:/Users/MinhNguyen/CLionProjects/NESEmulator/cmake-build-debug/CMakeFiles/ShiftTest.dir
+C:/Users/MinhNguyen/CLionProjects/NESEmulator/cmake-build-debug/CMakeFiles/JumpCallTest.dir
+C:/Users/MinhNguyen/CLionProjects/NESEmulator/cmake-build-debug/CMakeFiles/BranchTest.dir
+C:/Users/MinhNguyen/CLionProjects/NESEmulator/cmake-build-debug/CMakeFiles/StatusFlagTest.dir
+C:/Users/MinhNguyen/CLionProjects/NESEmulator/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/MinhNguyen/CLionProjects/NESEmulator/cmake-build-debug/CMakeFiles/rebuild_cache.dir

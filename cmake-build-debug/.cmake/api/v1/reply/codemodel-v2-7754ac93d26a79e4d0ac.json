@@ -1,0 +1,168 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"jsonFile" : "directory-.-Debug-d0094a50bb2071803777.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.27"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "NESEmulator",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "ArithmeticTest::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ArithmeticTest-Debug-5aed75ce3a10b356ce20.json",
+					"name" : "ArithmeticTest",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "BranchTest::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-BranchTest-Debug-cdf7b24e0632c036b27d.json",
+					"name" : "BranchTest",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "IncrementDecrementTest::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-IncrementDecrementTest-Debug-0be9f34f7471f882a2e3.json",
+					"name" : "IncrementDecrementTest",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "JumpCallTest::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-JumpCallTest-Debug-6464271863cd7fa2b837.json",
+					"name" : "JumpCallTest",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "LoadStoreTest::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-LoadStoreTest-Debug-ea3dad2e7091844e807a.json",
+					"name" : "LoadStoreTest",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "LogicalTest::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-LogicalTest-Debug-0f7f6561e1561b0ed4cc.json",
+					"name" : "LogicalTest",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "NESEmulator::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NESEmulator-Debug-429b0c7ae84ef06fea80.json",
+					"name" : "NESEmulator",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "PPUTest::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-PPUTest-Debug-cc42ac62d71c3f1efb88.json",
+					"name" : "PPUTest",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "RegisterTransferTest::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-RegisterTransferTest-Debug-f42596bedbfe64e88848.json",
+					"name" : "RegisterTransferTest",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ShiftTest::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ShiftTest-Debug-4954cf942936e8fc48e4.json",
+					"name" : "ShiftTest",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "StackOperationTest::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-StackOperationTest-Debug-1b054bfc945cd209fc8d.json",
+					"name" : "StackOperationTest",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "StatusFlagTest::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-StatusFlagTest-Debug-a825a4a2e411b460bda4.json",
+					"name" : "StatusFlagTest",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "TestDisplayTest::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-TestDisplayTest-Debug-2e881f44f5f6dfc09117.json",
+					"name" : "TestDisplayTest",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "C:/Users/MinhNguyen/CLionProjects/NESEmulator/cmake-build-debug",
+		"source" : "C:/Users/MinhNguyen/CLionProjects/NESEmulator"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 6
+	}
+}
