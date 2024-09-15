@@ -28,6 +28,9 @@ add_executable(NESEmulator src/main.cpp
         src/cpu/cpu.h
         src/cpu/cpu.cpp
         src/cpu/addressingMode.cpp
+        src/input_handler/input_handler.cpp
+        src/display/debug_display.h
+        src/display/debug_display.cpp
 )
 target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARY})
 target_link_libraries(${PROJECT_NAME} ${SDL2_IMAGE_LIBRARIES})
@@ -48,70 +51,180 @@ target_link_libraries(PPUTest Catch2::Catch2WithMain)
 target_link_libraries(PPUTest ${SDL2_LIBRARY})
 
 add_executable(LoadStoreTest src/test/cpu/loadStoreTest.cpp
+        src/constants.h
+        src/initializer/initializer.h
+        src/display/testDisplay.h
+        src/display/display.h
+        src/ppu/ppu.h
+        src/ppu/ppu.cpp
+        src/display/display.cpp
+        src/utils.h
+        src/utils.cpp
+        src/cpu/cpu.h
         src/cpu/cpu.cpp
         src/cpu/addressingMode.cpp
 )
 target_link_libraries(LoadStoreTest Catch2::Catch2WithMain)
+target_link_libraries(LoadStoreTest ${SDL2_LIBRARY})
 
 
 add_executable(RegisterTransferTest src/test/cpu/registerTransferTest.cpp
+        src/constants.h
+        src/initializer/initializer.h
+        src/display/testDisplay.h
+        src/display/display.h
+        src/ppu/ppu.h
+        src/ppu/ppu.cpp
+        src/display/display.cpp
+        src/utils.h
+        src/utils.cpp
+        src/cpu/cpu.h
         src/cpu/cpu.cpp
         src/cpu/addressingMode.cpp
 )
 target_link_libraries(RegisterTransferTest Catch2::Catch2WithMain)
+target_link_libraries(RegisterTransferTest ${SDL2_LIBRARY})
 
 
 add_executable(StackOperationTest src/test/cpu/stackOperationTest.cpp
+        src/constants.h
+        src/initializer/initializer.h
+        src/display/testDisplay.h
+        src/display/display.h
+        src/ppu/ppu.h
+        src/ppu/ppu.cpp
+        src/display/display.cpp
+        src/utils.h
+        src/utils.cpp
+        src/cpu/cpu.h
         src/cpu/cpu.cpp
         src/cpu/addressingMode.cpp
 )
 target_link_libraries(StackOperationTest Catch2::Catch2WithMain)
+target_link_libraries(StackOperationTest ${SDL2_LIBRARY})
 
 
 add_executable(LogicalTest src/test/cpu/logicalTest.cpp
+        src/constants.h
+        src/initializer/initializer.h
+        src/display/testDisplay.h
+        src/display/display.h
+        src/ppu/ppu.h
+        src/ppu/ppu.cpp
+        src/display/display.cpp
+        src/utils.h
+        src/utils.cpp
+        src/cpu/cpu.h
         src/cpu/cpu.cpp
         src/cpu/addressingMode.cpp
 )
 target_link_libraries(LogicalTest Catch2::Catch2WithMain)
+target_link_libraries(LogicalTest ${SDL2_LIBRARY})
 
 
 add_executable(ArithmeticTest src/test/cpu/arithmeticTest.cpp
+        src/constants.h
+        src/initializer/initializer.h
+        src/display/testDisplay.h
+        src/display/display.h
+        src/ppu/ppu.h
+        src/ppu/ppu.cpp
+        src/display/display.cpp
+        src/utils.h
+        src/utils.cpp
+        src/cpu/cpu.h
         src/cpu/cpu.cpp
         src/cpu/addressingMode.cpp
 )
 target_link_libraries(ArithmeticTest Catch2::Catch2WithMain)
+target_link_libraries(ArithmeticTest ${SDL2_LIBRARY})
 
 
 add_executable(IncrementDecrementTest src/test/cpu/incrementDecrementTest.cpp
+        src/constants.h
+        src/initializer/initializer.h
+        src/display/testDisplay.h
+        src/display/display.h
+        src/ppu/ppu.h
+        src/ppu/ppu.cpp
+        src/display/display.cpp
+        src/utils.h
+        src/utils.cpp
+        src/cpu/cpu.h
         src/cpu/cpu.cpp
         src/cpu/addressingMode.cpp
 )
 target_link_libraries(IncrementDecrementTest Catch2::Catch2WithMain)
+target_link_libraries(IncrementDecrementTest ${SDL2_LIBRARY})
 
 
 add_executable(ShiftTest src/test/cpu/shiftTest.cpp
+        src/constants.h
+        src/initializer/initializer.h
+        src/display/testDisplay.h
+        src/display/display.h
+        src/ppu/ppu.h
+        src/ppu/ppu.cpp
+        src/display/display.cpp
+        src/utils.h
+        src/utils.cpp
+        src/cpu/cpu.h
         src/cpu/cpu.cpp
         src/cpu/addressingMode.cpp
 )
 target_link_libraries(ShiftTest Catch2::Catch2WithMain)
+target_link_libraries(ShiftTest ${SDL2_LIBRARY})
 
 
 add_executable(JumpCallTest src/test/cpu/jumpCallTest.cpp
+        src/constants.h
+        src/initializer/initializer.h
+        src/display/testDisplay.h
+        src/display/display.h
+        src/ppu/ppu.h
+        src/ppu/ppu.cpp
+        src/display/display.cpp
+        src/utils.h
+        src/utils.cpp
+        src/cpu/cpu.h
         src/cpu/cpu.cpp
         src/cpu/addressingMode.cpp
 )
 target_link_libraries(JumpCallTest Catch2::Catch2WithMain)
+target_link_libraries(JumpCallTest ${SDL2_LIBRARY})
 
 
 add_executable(BranchTest src/test/cpu/branchTest.cpp
+        src/constants.h
+        src/initializer/initializer.h
+        src/display/testDisplay.h
+        src/display/display.h
+        src/ppu/ppu.h
+        src/ppu/ppu.cpp
+        src/display/display.cpp
+        src/utils.h
+        src/utils.cpp
+        src/cpu/cpu.h
         src/cpu/cpu.cpp
         src/cpu/addressingMode.cpp
 )
 target_link_libraries(BranchTest Catch2::Catch2WithMain)
+target_link_libraries(BranchTest ${SDL2_LIBRARY})
 
 
 add_executable(StatusFlagTest src/test/cpu/statusFlagTest.cpp
+        src/constants.h
+        src/initializer/initializer.h
+        src/display/testDisplay.h
+        src/display/display.h
+        src/ppu/ppu.h
+        src/ppu/ppu.cpp
+        src/display/display.cpp
+        src/utils.h
+        src/utils.cpp
+        src/cpu/cpu.h
         src/cpu/cpu.cpp
         src/cpu/addressingMode.cpp
 )
 target_link_libraries(StatusFlagTest Catch2::Catch2WithMain)
+target_link_libraries(StatusFlagTest ${SDL2_LIBRARY})

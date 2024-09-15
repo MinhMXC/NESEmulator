@@ -6,14 +6,19 @@
 #define private public
 #include "../../cpu/cpu.h"
 
-TEST_CASE("LDA", "") {
-  CPU cpu{};
+TEST_CASE("LDA") {
+  CPU cpu{nullptr};
+  cpu.programCounter = 0xF000;
 
   byte input8 = GENERATE(0, 0x12, 0xFF);
   byte input16 = GENERATE(0xF, 0xFF, 0x123);
 
   SECTION("Immediate") {
-    cpu.executeOp(0xA9, input8, 0xFF);
+    cpu.memory[0xF000] = 0xA9;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
+
+    cpu.executeNextClock();
 
     CHECK(cpu.programCounter == 2);
     CHECK(cpu.cycle == 2);
@@ -36,7 +41,11 @@ TEST_CASE("LDA", "") {
 
   SECTION("Zero Page") {
     cpu.memory[input8] = input8;
-    cpu.executeOp(0xA5, input8, 0xFF);
+    cpu.memory[0xF000] = 0xA5;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
+
+    cpu.executeNextClock();
 
     CHECK(cpu.programCounter == 2);
     CHECK(cpu.cycle == 3);
@@ -59,12 +68,17 @@ TEST_CASE("LDA", "") {
 
   SECTION("Zero Page X") {
     cpu.x = 1;
-    cpu.executeOp(0xB5, input8, 0xFF);
+    cpu.memory[(input8 + cpu.x) & 0xFF] = input8;
+    cpu.memory[0xF000] = 0xB5;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
+
+    cpu.executeNextClock();
 
     CHECK(cpu.programCounter == 2);
     CHECK(cpu.cycle == 4);
 
-    const byte expected{ static_cast<byte>(cpu.readMemory(input8 + cpu.x)) };
+    const byte expected{ input8 };
     CHECK(cpu.accumulator == expected);
     CHECKED_IF(expected == 0) {
       CHECK(cpu.zero == true);
@@ -82,12 +96,17 @@ TEST_CASE("LDA", "") {
   }
 
   SECTION("Absolute") {
-    cpu.executeOp(0xAD, input16, input16 >> 8);
+    cpu.memory[input16] = input8;
+    cpu.memory[0xF000] = 0xAD;
+    cpu.memory[0xF001] = input16;
+    cpu.memory[0xF002] = input16 >> 8;
+
+    cpu.executeNextClock();
 
     CHECK(cpu.programCounter == 3);
     CHECK(cpu.cycle == 4);
 
-    const byte expected{ static_cast<byte>(cpu.readMemory(input16)) };
+    const byte expected{ input8 };
     CHECK(cpu.accumulator == expected);
     CHECKED_IF(expected == 0) {
       CHECK(cpu.zero == true);
@@ -106,7 +125,12 @@ TEST_CASE("LDA", "") {
 
   SECTION("Absolute X") {
     cpu.x = 1;
-    cpu.executeOp(0xBD, input16, input16 >> 8);
+    cpu.memory[input16 + cpu.x] = input8;
+    cpu.memory[0xF000] = 0xBD;
+    cpu.memory[0xF001] = input16;
+    cpu.memory[0xF002] = input16 >> 8;
+
+    cpu.executeNextClock();
 
     CHECK(cpu.programCounter == 3);
     CHECKED_IF(((input16 + cpu.x) & 0xF00) != (input16 & 0xF00)) {
@@ -117,7 +141,7 @@ TEST_CASE("LDA", "") {
       CHECK(cpu.cycle == 4);
     }
 
-    const byte expected{ static_cast<byte>(cpu.readMemory(input16 + cpu.x)) };
+    const byte expected{ input8 };
     CHECK(cpu.accumulator == expected);
     CHECKED_IF(expected == 0) {
       CHECK(cpu.zero == true);
@@ -136,7 +160,12 @@ TEST_CASE("LDA", "") {
 
   SECTION("Absolute Y") {
     cpu.y = 1;
-    cpu.executeOp(0xB9, input16, input16 >> 8);
+    cpu.memory[input16 + cpu.y] = input8;
+    cpu.memory[0xF000] = 0xB9;
+    cpu.memory[0xF001] = input16;
+    cpu.memory[0xF002] = input16 >> 8;
+
+    cpu.executeNextClock();
 
     CHECK(cpu.programCounter == 3);
     CHECKED_IF(((input16 + cpu.y) & 0xF00) != (input16 & 0xF00)) {
@@ -147,7 +176,7 @@ TEST_CASE("LDA", "") {
       CHECK(cpu.cycle == 4);
     }
 
-    const byte expected{ static_cast<byte>(cpu.readMemory(input16 + cpu.y)) };
+    const byte expected{ input8 };
     CHECK(cpu.accumulator == expected);
     CHECKED_IF(expected == 0) {
       CHECK(cpu.zero == true);
@@ -169,7 +198,11 @@ TEST_CASE("LDA", "") {
     cpu.memory[static_cast<byte>(input8 + cpu.x)] = input16;
     cpu.memory[static_cast<byte>(input8 + cpu.x + 1)] = input16 >> 8;
     cpu.memory[input16] = input8;
-    cpu.executeOp(0xA1, input8, 0xFF);
+    cpu.memory[0xF000] = 0xA1;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
+
+    cpu.executeNextClock();
 
     CHECK(cpu.programCounter == 2);
     CHECK(cpu.cycle == 6);
@@ -196,7 +229,11 @@ TEST_CASE("LDA", "") {
     cpu.memory[input8] = input16;
     cpu.memory[static_cast<byte>(input8 + 1)] = input16 >> 8;
     cpu.memory[input16 + cpu.y] = input8;
-    cpu.executeOp(0xB1, input8, 0xFF);
+    cpu.memory[0xF000] = 0xB1;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
+
+    cpu.executeNextClock();
 
     CHECK(cpu.programCounter == 2);
     CHECKED_IF(((input16 + cpu.y) & 0xF00) != (input16 & 0xF00)) {
@@ -225,14 +262,19 @@ TEST_CASE("LDA", "") {
   }
 }
 
-TEST_CASE("LDX", "") {
-  CPU cpu{};
+TEST_CASE("LDX") {
+  CPU cpu{nullptr};
+  cpu.programCounter = 0xF000;
 
   byte input8 = GENERATE(0, 0x12, 0xFF);
   byte input16 = GENERATE(0xF, 0xFF, 0x123);
 
   SECTION("Immediate") {
-    cpu.executeOp(0xA2, input8, 0xFF);
+    cpu.memory[0xF000] = 0xA2;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
+
+    cpu.executeNextClock();
 
     CHECK(cpu.programCounter == 2);
     CHECK(cpu.cycle == 2);
@@ -255,7 +297,11 @@ TEST_CASE("LDX", "") {
 
   SECTION("Zero Page") {
     cpu.memory[input8] = input8;
-    cpu.executeOp(0xA6, input8, 0xFF);
+    cpu.memory[0xF000] = 0xA6;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
+
+    cpu.executeNextClock();
 
     CHECK(cpu.programCounter == 2);
     CHECK(cpu.cycle == 3);
@@ -278,12 +324,17 @@ TEST_CASE("LDX", "") {
 
   SECTION("Zero Page Y") {
     cpu.y = 1;
-    cpu.executeOp(0xB6, input8, 0xFF);
+    cpu.memory[(input8 + cpu.y) & 0xFF] = input8;
+    cpu.memory[0xF000] = 0xB6;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
+
+    cpu.executeNextClock();
 
     CHECK(cpu.programCounter == 2);
     CHECK(cpu.cycle == 4);
 
-    const byte expected{ static_cast<byte>(cpu.readMemory(input8 + cpu.y)) };
+    const byte expected{ input8 };
     CHECK(cpu.x == expected);
     CHECKED_IF(expected == 0) {
       CHECK(cpu.zero == true);
@@ -301,12 +352,17 @@ TEST_CASE("LDX", "") {
   }
 
   SECTION("Absolute") {
-    cpu.executeOp(0xAE, input16, input16 >> 8);
+    cpu.memory[input16] = input8;
+    cpu.memory[0xF000] = 0xAE;
+    cpu.memory[0xF001] = input16;
+    cpu.memory[0xF002] = input16 >> 8;
+
+    cpu.executeNextClock();
 
     CHECK(cpu.programCounter == 3);
     CHECK(cpu.cycle == 4);
 
-    const byte expected{ static_cast<byte>(cpu.readMemory(input16)) };
+    const byte expected{ input8 };
     CHECK(cpu.x == expected);
     CHECKED_IF(expected == 0) {
       CHECK(cpu.zero == true);
@@ -325,7 +381,12 @@ TEST_CASE("LDX", "") {
 
   SECTION("Absolute Y") {
     cpu.y = 1;
-    cpu.executeOp(0xBE, input16, input16 >> 8);
+    cpu.memory[input16 + cpu.y] = input8;
+    cpu.memory[0xF000] = 0xBE;
+    cpu.memory[0xF001] = input16;
+    cpu.memory[0xF002] = input16 >> 8;
+
+    cpu.executeNextClock();
 
     CHECK(cpu.programCounter == 3);
     CHECKED_IF(((input16 + cpu.y) & 0xF00) != (input16 & 0xF00)) {
@@ -336,7 +397,7 @@ TEST_CASE("LDX", "") {
       CHECK(cpu.cycle == 4);
     }
 
-    const byte expected{ static_cast<byte>(cpu.readMemory(input16 + cpu.y)) };
+    const byte expected{ input8 };
     CHECK(cpu.x == expected);
     CHECKED_IF(expected == 0) {
       CHECK(cpu.zero == true);
@@ -354,14 +415,19 @@ TEST_CASE("LDX", "") {
   }
 }
 
-TEST_CASE("LDY", "") {
-  CPU cpu{};
+TEST_CASE("LDY") {
+  CPU cpu{nullptr};
+  cpu.programCounter = 0xF000;
 
   byte input8 = GENERATE(0, 0x12, 0xFF);
   byte input16 = GENERATE(0xF, 0xFF, 0x123);
 
   SECTION("Immediate") {
-    cpu.executeOp(0xA0, input8, 0xFF);
+    cpu.memory[0xF000] = 0xA0;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
+
+    cpu.executeNextClock();
 
     CHECK(cpu.programCounter == 2);
     CHECK(cpu.cycle == 2);
@@ -384,7 +450,11 @@ TEST_CASE("LDY", "") {
 
   SECTION("Zero Page") {
     cpu.memory[input8] = input8;
-    cpu.executeOp(0xA4, input8, 0xFF);
+    cpu.memory[0xF000] = 0xA4;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
+
+    cpu.executeNextClock();
 
     CHECK(cpu.programCounter == 2);
     CHECK(cpu.cycle == 3);
@@ -407,12 +477,17 @@ TEST_CASE("LDY", "") {
 
   SECTION("Zero Page X") {
     cpu.x = 1;
-    cpu.executeOp(0xB4, input8, 0xFF);
+    cpu.memory[(input8 + cpu.x) & 0xFF] = input8;
+    cpu.memory[0xF000] = 0xB4;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
+
+    cpu.executeNextClock();
 
     CHECK(cpu.programCounter == 2);
     CHECK(cpu.cycle == 4);
 
-    const byte expected{ cpu.readMemory(input8 + cpu.x) };
+    const byte expected{ input8 };
     CHECK(cpu.y == expected);
     CHECKED_IF(expected == 0) {
       CHECK(cpu.zero == true);
@@ -430,12 +505,17 @@ TEST_CASE("LDY", "") {
   }
 
   SECTION("Absolute") {
-    cpu.executeOp(0xAC, input16, input16 >> 8);
+    cpu.memory[input16] = input8;
+    cpu.memory[0xF000] = 0xAC;
+    cpu.memory[0xF001] = input16;
+    cpu.memory[0xF002] = input16 >> 8;
+
+    cpu.executeNextClock();
 
     CHECK(cpu.programCounter == 3);
     CHECK(cpu.cycle == 4);
 
-    const byte expected{ cpu.readMemory(input16) };
+    const byte expected{ input8 };
     CHECK(cpu.y == expected);
     CHECKED_IF(expected == 0) {
       CHECK(cpu.zero == true);
@@ -454,7 +534,12 @@ TEST_CASE("LDY", "") {
 
   SECTION("Absolute X") {
     cpu.x = 1;
-    cpu.executeOp(0xBC, input16, input16 >> 8);
+    cpu.memory[input16 + cpu.x] = input8;
+    cpu.memory[0xF000] = 0xBC;
+    cpu.memory[0xF001] = input16;
+    cpu.memory[0xF002] = input16 >> 8;
+
+    cpu.executeNextClock();
 
     CHECK(cpu.programCounter == 3);
     CHECKED_IF(((input16 + cpu.x) & 0xF00) != (input16 & 0xF00)) {
@@ -465,8 +550,8 @@ TEST_CASE("LDY", "") {
       CHECK(cpu.cycle == 4);
     }
 
-    const byte expected{ cpu.readMemory(input16 + cpu.x) };
-    CHECK(cpu.accumulator == expected);
+    const byte expected{ input8 };
+    CHECK(cpu.y == expected);
     CHECKED_IF(expected == 0) {
       CHECK(cpu.zero == true);
     }
@@ -484,7 +569,8 @@ TEST_CASE("LDY", "") {
 }
 
 TEST_CASE("STA") {
-  CPU cpu{};
+  CPU cpu{nullptr};
+  cpu.programCounter = 0xF000;
 
   byte input8 = GENERATE(0, 0x12, 0xFF);
   byte input16 = GENERATE(0xF, 0xFF, 0x123);
@@ -492,7 +578,12 @@ TEST_CASE("STA") {
   cpu.accumulator = input8;
 
   SECTION("Zero Page") {
-    cpu.executeOp(0x85, input8, 0xFF);
+    cpu.memory[0xF000] = 0x85;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
+
+    cpu.executeNextClock();
+
     CHECK(cpu.programCounter == 2);
     CHECK(cpu.cycle == 3);
     CHECK(cpu.readMemory(input8) == input8);
@@ -500,14 +591,23 @@ TEST_CASE("STA") {
 
   SECTION("Zero Page X") {
     cpu.x = 1;
-    cpu.executeOp(0x95, input8, 0xFF);
+    cpu.memory[0xF000] = 0x95;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
+
+    cpu.executeNextClock();
     CHECK(cpu.programCounter == 2);
     CHECK(cpu.cycle == 4);
     CHECK(cpu.readMemory((input8 + cpu.x) & 0xFF) == input8);
   }
 
   SECTION("Absolute") {
-    cpu.executeOp(0x8D, input16, input16 >> 8);
+    cpu.memory[0xF000] = 0x8D;
+    cpu.memory[0xF001] = input16;
+    cpu.memory[0xF002] = input16 >> 8;
+
+    cpu.executeNextClock();
+
     CHECK(cpu.programCounter == 3);
     CHECK(cpu.cycle == 4);
     CHECK(cpu.readMemory(input16) == input8);
@@ -515,7 +615,12 @@ TEST_CASE("STA") {
 
   SECTION("Absolute X") {
     cpu.x = 1;
-    cpu.executeOp(0x9D, input16, input16 >> 8);
+    cpu.memory[0xF000] = 0x9D;
+    cpu.memory[0xF001] = input16;
+    cpu.memory[0xF002] = input16 >> 8;
+
+    cpu.executeNextClock();
+
     CHECK(cpu.programCounter == 3);
     CHECK(cpu.cycle == 5);
     CHECK(cpu.readMemory(input16 + cpu.x) == input8);
@@ -523,7 +628,12 @@ TEST_CASE("STA") {
 
   SECTION("Absolute Y") {
     cpu.y = 1;
-    cpu.executeOp(0x99, input16, input16 >> 8);
+    cpu.memory[0xF000] = 0x99;
+    cpu.memory[0xF001] = input16;
+    cpu.memory[0xF002] = input16 >> 8;
+
+    cpu.executeNextClock();
+
     CHECK(cpu.programCounter == 3);
     CHECK(cpu.cycle == 5);
     CHECK(cpu.readMemory(input16 + cpu.y) == input8);
@@ -533,7 +643,12 @@ TEST_CASE("STA") {
     cpu.x = 1;
     cpu.memory[(input8 + cpu.x) & 0xFF] = input16;
     cpu.memory[(input8 + cpu.x + 1) & 0xFF] = input16 >> 8;
-    cpu.executeOp(0x81, input8, 0xFF);
+    cpu.memory[0xF000] = 0x81;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
+
+    cpu.executeNextClock();
+
     CHECK(cpu.programCounter == 2);
     CHECK(cpu.cycle == 6);
     CHECK(cpu.readMemory(input16) == input8);
@@ -543,7 +658,12 @@ TEST_CASE("STA") {
     cpu.y = 1;
     cpu.memory[input8] = input16;
     cpu.memory[(input8 + 1) & 0xFF] = input16 >> 8;
-    cpu.executeOp(0x91, input8, 0xFF);
+    cpu.memory[0xF000] = 0x91;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
+
+    cpu.executeNextClock();
+
     CHECK(cpu.programCounter == 2);
     CHECK(cpu.cycle == 6);
     CHECK(cpu.readMemory(input16 + cpu.y) == input8);
@@ -551,7 +671,8 @@ TEST_CASE("STA") {
 }
 
 TEST_CASE("STX") {
-  CPU cpu{};
+  CPU cpu{nullptr};
+  cpu.programCounter = 0xF000;
 
   byte input8 = GENERATE(0, 0x12, 0xFF);
   byte input16 = GENERATE(0xF, 0xFF, 0x123);
@@ -559,7 +680,12 @@ TEST_CASE("STX") {
   cpu.x = input8;
 
   SECTION("Zero Page") {
-    cpu.executeOp(0x86, input8, 0xFF);
+    cpu.memory[0xF000] = 0x86;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
+
+    cpu.executeNextClock();
+
     CHECK(cpu.programCounter == 2);
     CHECK(cpu.cycle == 3);
     CHECK(cpu.readMemory(input8) == input8);
@@ -567,14 +693,24 @@ TEST_CASE("STX") {
 
   SECTION("Zero Page Y") {
     cpu.y = 1;
-    cpu.executeOp(0x96, input8, 0xFF);
+    cpu.memory[0xF000] = 0x96;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
+
+    cpu.executeNextClock();
+
     CHECK(cpu.programCounter == 2);
     CHECK(cpu.cycle == 4);
     CHECK(cpu.readMemory((input8 + cpu.y) & 0xFF) == input8);
   }
 
   SECTION("Absolute") {
-    cpu.executeOp(0x8E, input16, input16 >> 8);
+    cpu.memory[0xF000] = 0x8E;
+    cpu.memory[0xF001] = input16;
+    cpu.memory[0xF002] = input16 >> 8;
+
+    cpu.executeNextClock();
+
     CHECK(cpu.programCounter == 3);
     CHECK(cpu.cycle == 4);
     CHECK(cpu.readMemory(input16) == input8);
@@ -582,7 +718,8 @@ TEST_CASE("STX") {
 }
 
 TEST_CASE("STY") {
-  CPU cpu{};
+  CPU cpu{nullptr};
+  cpu.programCounter = 0xF000;
 
   byte input8 = GENERATE(0, 0x12, 0xFF);
   byte input16 = GENERATE(0xF, 0xFF, 0x123);
@@ -590,7 +727,12 @@ TEST_CASE("STY") {
   cpu.y = input8;
 
   SECTION("Zero Page") {
-    cpu.executeOp(0x84, input8, 0xFF);
+    cpu.memory[0xF000] = 0x84;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
+
+    cpu.executeNextClock();
+
     CHECK(cpu.programCounter == 2);
     CHECK(cpu.cycle == 3);
     CHECK(cpu.readMemory(input8) == input8);
@@ -598,14 +740,24 @@ TEST_CASE("STY") {
 
   SECTION("Zero Page X") {
     cpu.x = 1;
-    cpu.executeOp(0x94, input8, 0xFF);
+    cpu.memory[0xF000] = 0x94;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
+
+    cpu.executeNextClock();
+
     CHECK(cpu.programCounter == 2);
     CHECK(cpu.cycle == 4);
     CHECK(cpu.readMemory((input8 + cpu.x) & 0xFF) == input8);
   }
 
   SECTION("Absolute") {
-    cpu.executeOp(0x8C, input16, input16 >> 8);
+    cpu.memory[0xF000] = 0x8C;
+    cpu.memory[0xF001] = input16;
+    cpu.memory[0xF002] = input16 >> 8;
+
+    cpu.executeNextClock();
+
     CHECK(cpu.programCounter == 3);
     CHECK(cpu.cycle == 4);
     CHECK(cpu.readMemory(input16) == input8);

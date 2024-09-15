@@ -5,11 +5,13 @@
 #include "ppu/ppu.h"
 #include "cpu/cpu.h"
 #include "initializer/initializer.h"
+#include "display/debug_display.h"
 #include <SDL.h>
 #include <SDL_image.h>
 #include <cstdio>
 #include <iostream>
 #include <chrono>
+#include <thread>
 
 
 int main(int argv, char** args) {
@@ -73,167 +75,171 @@ int main(int argv, char** args) {
 
   Display display{renderer, texture};
   PPU ppu{display};
-  CPU cpu{ppu};
+  InputHandler inputHandler{};
+  CPU cpu{ppu, inputHandler};
   Initializer initializer{cpu, ppu};
-  std::string res{ initializer.loadFile("../test_rom/nestest.nes") };
+
+  std::string res{ initializer.loadFile("../test_rom/kungfu.nes") };
   if (!res.empty()) {
     printf("Error: %s\n", res.c_str());
   }
 
-  for (int i{}; i < 960; i++) {
-    ppu.memory[0x2000 + i] = 5;
+  // Debug Screen
+  SDL_Window* debugWindow = SDL_CreateWindow(
+    "Debug",
+    SDL_WINDOWPOS_UNDEFINED,
+    SDL_WINDOWPOS_UNDEFINED,
+    EmuConst::SCALED_SCREEN_WIDTH,
+    EmuConst::SCALED_SCREEN_HEIGHT,
+    SDL_WINDOW_SHOWN
+  );
+  if (debugWindow == nullptr) {
+    printf("Window could not be created! SDL Error: %s\n", SDL_GetError());
   }
 
-  for (int i{}; i < 64; i++) {
-    ppu.memory[0x23C0 + i] = 0b1010'1010;
+  // Making Renderer
+  SDL_Renderer* debugRenderer = SDL_CreateRenderer(debugWindow, -1, SDL_RENDERER_ACCELERATED);
+  if (debugRenderer == nullptr) {
+    printf("Cannot create renderer! SDL Error: %s\n", SDL_GetError());
+    return -1;
   }
 
-  ppu.writePPUCtrl(0b0000'0000);
-  ppu.writePPUMask(0b0001'1110);
-//  ppu.writePPUScroll(20);
-//  ppu.writePPUScroll(100);
+  SDL_Texture* debugTexture = SDL_CreateTexture(
+    debugRenderer,
+    SDL_PIXELFORMAT_ARGB8888,
+    SDL_TEXTUREACCESS_STREAMING,
+    EmuConst::SCREEN_WIDTH,
+    EmuConst::SCREEN_HEIGHT
+  );
+  if (debugTexture == nullptr) {
+    printf("Cannot create texture! SDL Error: %s\n", SDL_GetError());
+    return -1;
+  }
 
-  ppu.memory[0x3F00] = 0;
-  ppu.memory[0x3F08] = 15;
-  ppu.memory[0x3F09] = 28;
-  ppu.memory[0x3F0A] = 26;
-  ppu.memory[0x3F0B] = 35;
+  DebugDisplay debugDisplay{ppu, debugRenderer, debugTexture};
 
-  ppu.memory[0x0050] = 0b0000'0000;
-  ppu.memory[0x0051] = 0b0111'1110;
-  ppu.memory[0x0052] = 0b0101'1010;
-  ppu.memory[0x0053] = 0b0111'1110;
-  ppu.memory[0x0054] = 0b0101'1010;
-  ppu.memory[0x0055] = 0b0100'0010;
-  ppu.memory[0x0056] = 0b0111'1110;
-  ppu.memory[0x0057] = 0b0000'0000;
 
-  ppu.memory[0x0058] = 0b0000'0000;
-  ppu.memory[0x0059] = 0b0000'0000;
-  ppu.memory[0x005A] = 0b0010'0100;
-  ppu.memory[0x005B] = 0b0001'1000;
-  ppu.memory[0x005C] = 0b0010'0100;
-  ppu.memory[0x005D] = 0b0011'1100;
-  ppu.memory[0x005E] = 0b0000'0000;
-  ppu.memory[0x005F] = 0b0000'0000;
 
-//  ppu.memory[0x0050] = 0b1111'1111;
-//  ppu.memory[0x0051] = 0b1111'1111;
-//  ppu.memory[0x0052] = 0b1111'1111;
-//  ppu.memory[0x0053] = 0b1111'1111;
-//  ppu.memory[0x0054] = 0b1111'1111;
-//  ppu.memory[0x0055] = 0b1111'1111;
-//  ppu.memory[0x0056] = 0b1111'1111;
-//  ppu.memory[0x0057] = 0b1111'1111;
+  // freopen("log.txt", "w", stdout);
 
-  // 8x8 test
-//  for (int i{}; i <= 16; i++) {
-//    ppu.oam[i * 4] = 8;
-//    ppu.oam[i * 4 + 1] = 0x6;
-//    ppu.oam[i * 4 + 2] = 0b0000'0001;
-//    ppu.oam[i * 4 + 3] = i * 4;
+
+  cpu.executeStartUpSequence();
+
+//  for (int i{0x23C0}; i < 0x2400; i += 8) {
+//    ppu.memory[i + 0] = 0;
+//    ppu.memory[i + 1] = 0;
+//    ppu.memory[i + 2] = 0;
+//    ppu.memory[i + 3] = 0b01010101;
+//    ppu.memory[i + 4] = 0b01010101;
+//    ppu.memory[i + 5] = 0b01010101;
+//    ppu.memory[i + 6] = 0b10101010;
+//    ppu.memory[i + 7] = 0b10101010;
 //  }
 //
-//  ppu.memory[0x3F15] = 48;
-//  ppu.memory[0x3F16] = 38;
-//  ppu.memory[0x3F17] = 39;
+//  ppu.memory[0x3F01] = 1;
+//  ppu.memory[0x3F05] = 10;
+//  ppu.memory[0x3F09] = 20;
 //
-//  ppu.memory[0x0060] = 0b1111'1111;
-//  ppu.memory[0x0061] = 0b1111'1111;
-//  ppu.memory[0x0062] = 0b1111'1111;
-//  ppu.memory[0x0063] = 0b1111'1111;
-//  ppu.memory[0x0064] = 0b1111'1111;
-//  ppu.memory[0x0065] = 0b1111'1111;
-//  ppu.memory[0x0066] = 0b1111'1111;
-//  ppu.memory[0x0067] = 0b1111'1111;
+//  ppu.memory[0x0] = 0b1111'1111;
+//  ppu.memory[0x1] = 0b1111'1111;
+//  ppu.memory[0x2] = 0b1111'1111;
+//  ppu.memory[0x3] = 0b1111'1111;
 //
-//  ppu.memory[0x0068] = 0b0000'0000;
-//  ppu.memory[0x0069] = 0b0111'1110;
-//  ppu.memory[0x006A] = 0b0100'0000;
-//  ppu.memory[0x006B] = 0b0100'0000;
-//  ppu.memory[0x006C] = 0b0100'0000;
-//  ppu.memory[0x006D] = 0b0100'0000;
-//  ppu.memory[0x006E] = 0b0100'0000;
-//  ppu.memory[0x006F] = 0b0000'0000;
-
-  // 8 x 16 test
-//  ppu.oam[0] = 100;
-//  ppu.oam[1] = 0b0000'1110;
-//  ppu.oam[2] = 0b1100'0011;
-//  ppu.oam[3] = 100;
+//  ppu.memory[0x4] = 0b1111'1111;
+//  ppu.memory[0x5] = 0b1111'1111;
+//  ppu.memory[0x6] = 0b1111'1111;
+//  ppu.memory[0x7] = 0b1111'1111;
 //
-//  ppu.memory[0x3F1D] = 48;
-//  ppu.memory[0x3F1E] = 38;
-//  ppu.memory[0x3F1F] = 39;
+//  ppu.writePPUMask(0b0001'1110);
 //
-//  ppu.memory[0x0070] = 0b1111'1111;
-//  ppu.memory[0x0071] = 0b1111'1111;
-//  ppu.memory[0x0072] = 0b1111'1111;
-//  ppu.memory[0x0073] = 0b1111'1111;
-//  ppu.memory[0x0074] = 0b1111'1111;
-//  ppu.memory[0x0075] = 0b1111'1111;
-//  ppu.memory[0x0076] = 0b1111'1111;
-//  ppu.memory[0x0077] = 0b1111'1111;
+//  for (int i{}; i < 2; i++) {
+//    for (int j{}; j < 341 * 256; j++) {
+//      ppu.executeNextClock();
+//    }
+//  }
 //
-//  ppu.memory[0x0078] = 0b1000'0000;
-//  ppu.memory[0x0079] = 0b1000'0000;
-//  ppu.memory[0x007A] = 0b1000'0000;
-//  ppu.memory[0x007B] = 0b1000'0000;
-//  ppu.memory[0x007C] = 0b1000'0000;
-//  ppu.memory[0x007D] = 0b1000'0000;
-//  ppu.memory[0x007E] = 0b1000'0000;
-//  ppu.memory[0x007F] = 0b1000'0000;
-//
-//
-//  ppu.memory[0x0080] = 0b1111'1111;
-//  ppu.memory[0x0081] = 0b1111'1111;
-//  ppu.memory[0x0082] = 0b1111'1111;
-//  ppu.memory[0x0083] = 0b1111'1111;
-//  ppu.memory[0x0084] = 0b1111'1111;
-//  ppu.memory[0x0085] = 0b1111'1111;
-//  ppu.memory[0x0086] = 0b1111'1111;
-//  ppu.memory[0x0087] = 0b1111'1111;
-//
-//  ppu.memory[0x0088] = 0b1000'0000;
-//  ppu.memory[0x0089] = 0b1000'0000;
-//  ppu.memory[0x008A] = 0b1000'0000;
-//  ppu.memory[0x008B] = 0b1000'0000;
-//  ppu.memory[0x008C] = 0b1000'0000;
-//  ppu.memory[0x008D] = 0b1000'0000;
-//  ppu.memory[0x008E] = 0b1000'0000;
-//  ppu.memory[0x008F] = 0b1111'1111;
-
-  auto start{ std::chrono::system_clock::now() };
-
-  for (int t{}; t < 60; t++) {
-    for (int i{}; i < 341 * 256; i++) {
-      ppu.executeNextClock();
-    }
-  }
-
-  auto end{ std::chrono::system_clock::now() };
-  std::printf("%lld\n", std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
-
-
   bool quit{false};
+  uint64_t lastTotalCycle{cpu.totalCycle};
   SDL_Event e;
+//
+//  while (!quit) {
+//    while (SDL_WaitEvent(&e)) {
+//      if (e.type == SDL_QUIT) {
+//        quit = true;
+//
+//        // Destroy SDL Stuff
+//        SDL_DestroyWindow(window);
+//        SDL_DestroyRenderer(renderer);
+//        SDL_DestroyTexture(texture);
+//        window = nullptr;
+//        SDL_Quit();
+//      }
+//    }
+//  }
 
   while (!quit) {
-    while (SDL_WaitEvent(&e) != 0) {
+    auto start{ std::chrono::system_clock::now() };
 
-      if (e.type == SDL_QUIT) {
+    inputHandler.resetRead();
+
+     debugDisplay.updateScreen();
+
+    // Handle Event
+    while (SDL_PollEvent(&e)) {
+      inputHandler.handleEvent(e);
+
+      if (e.key.keysym.sym == SDLK_0 && e.type == SDL_KEYDOWN) {
+        for (int i{0x2000}; i < 0x2400; i++) {
+          if (i % 0x10 == 0)
+            printf("\n");
+          printf("%02X ", ppu.memory[i]);
+        }
+
+        printf("\n");
+//
+//        for (int i{}; i < 256; i++) {
+//          if (i % 0x10 == 0)
+//            printf("\n");
+//          printf("%02X ", ppu.oam[i]);
+//        }
+      }
+
+      if (e.type == SDL_WINDOWEVENT && e.window.event == SDL_WINDOWEVENT_CLOSE) {
         quit = true;
 
         // Destroy SDL Stuff
         SDL_DestroyWindow(window);
         SDL_DestroyRenderer(renderer);
         SDL_DestroyTexture(texture);
+
+        SDL_DestroyWindow(debugWindow);
+        SDL_DestroyRenderer(debugRenderer);
+        SDL_DestroyTexture(debugTexture);
+
         window = nullptr;
         SDL_Quit();
       }
     }
+
+    // Handle Keyboard State
+    inputHandler.handleKeyboardState();
+
+    // Execute CPU
+    while (true) {
+      cpu.executeNextClock();
+      if ((cpu.totalCycle - lastTotalCycle) > 29833) {
+        lastTotalCycle = cpu.totalCycle;
+        break;
+      }
+    }
+
+    using namespace std::chrono_literals;
+
+    std::this_thread::sleep_until(start + 16.6ms);
+
+    auto end{ std::chrono::system_clock::now() };
+    // printf("%lld\n", std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
   }
 
   return 0;
 }
-

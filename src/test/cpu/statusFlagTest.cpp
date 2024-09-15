@@ -7,8 +7,14 @@
 #include "../../cpu/cpu.h"
 
 TEST_CASE("CLC") {
-  CPU cpu{};
-  cpu.executeOp(0x18, 0xFF, 0xFF);
+  CPU cpu{nullptr};
+  cpu.programCounter = 0xF000;
+
+  cpu.memory[0xF000] = 0x18;
+  cpu.memory[0xF001] = 0xFF;
+  cpu.memory[0xF002] = 0xFF;
+
+  cpu.executeNextClock();
 
   CHECK(cpu.programCounter == 1);
   CHECK(cpu.cycle == 2);
@@ -16,8 +22,14 @@ TEST_CASE("CLC") {
 }
 
 TEST_CASE("CLD") {
-  CPU cpu{};
-  cpu.executeOp(0xD8, 0xFF, 0xFF);
+  CPU cpu{nullptr};
+  cpu.programCounter = 0xF000;
+
+  cpu.memory[0xF000] = 0xD8;
+  cpu.memory[0xF001] = 0xFF;
+  cpu.memory[0xF002] = 0xFF;
+
+  cpu.executeNextClock();
 
   CHECK(cpu.programCounter == 1);
   CHECK(cpu.cycle == 2);
@@ -25,8 +37,14 @@ TEST_CASE("CLD") {
 }
 
 TEST_CASE("CLI") {
-  CPU cpu{};
-  cpu.executeOp(0x58, 0xFF, 0xFF);
+  CPU cpu{nullptr};
+  cpu.programCounter = 0xF000;
+
+  cpu.memory[0xF000] = 0x58;
+  cpu.memory[0xF001] = 0xFF;
+  cpu.memory[0xF002] = 0xFF;
+
+  cpu.executeNextClock();
 
   CHECK(cpu.programCounter == 1);
   CHECK(cpu.cycle == 2);
@@ -34,8 +52,14 @@ TEST_CASE("CLI") {
 }
 
 TEST_CASE("CLV") {
-  CPU cpu{};
-  cpu.executeOp(0xB8, 0xFF, 0xFF);
+  CPU cpu{nullptr};
+  cpu.programCounter = 0xF000;
+
+  cpu.memory[0xF000] = 0xB8;
+  cpu.memory[0xF001] = 0xFF;
+  cpu.memory[0xF002] = 0xFF;
+
+  cpu.executeNextClock();
 
   CHECK(cpu.programCounter == 1);
   CHECK(cpu.cycle == 2);
@@ -43,8 +67,14 @@ TEST_CASE("CLV") {
 }
 
 TEST_CASE("SEC") {
-  CPU cpu{};
-  cpu.executeOp(0x38, 0xFF, 0xFF);
+  CPU cpu{nullptr};
+  cpu.programCounter = 0xF000;
+
+  cpu.memory[0xF000] = 0x38;
+  cpu.memory[0xF001] = 0xFF;
+  cpu.memory[0xF002] = 0xFF;
+
+  cpu.executeNextClock();
 
   CHECK(cpu.programCounter == 1);
   CHECK(cpu.cycle == 2);
@@ -52,8 +82,14 @@ TEST_CASE("SEC") {
 }
 
 TEST_CASE("SED") {
-  CPU cpu{};
-  cpu.executeOp(0xF8, 0xFF, 0xFF);
+  CPU cpu{nullptr};
+  cpu.programCounter = 0xF000;
+
+  cpu.memory[0xF000] = 0xF8;
+  cpu.memory[0xF001] = 0xFF;
+  cpu.memory[0xF002] = 0xFF;
+
+  cpu.executeNextClock();
 
   CHECK(cpu.programCounter == 1);
   CHECK(cpu.cycle == 2);
@@ -61,8 +97,14 @@ TEST_CASE("SED") {
 }
 
 TEST_CASE("SEI") {
-  CPU cpu{};
-  cpu.executeOp(0x78, 0xFF, 0xFF);
+  CPU cpu{nullptr};
+  cpu.programCounter = 0xF000;
+
+  cpu.memory[0xF000] = 0x78;
+  cpu.memory[0xF001] = 0xFF;
+  cpu.memory[0xF002] = 0xFF;
+
+  cpu.executeNextClock();
 
   CHECK(cpu.programCounter == 1);
   CHECK(cpu.cycle == 2);

@@ -7,11 +7,18 @@
 #include "../../cpu/cpu.h"
 
 TEST_CASE("TSX") {
-  CPU cpu{};
+  CPU cpu{nullptr};
+  cpu.programCounter = 0xF000;
 
   byte input8 = GENERATE(0x00, 0x12, 0xFF);
   cpu.stackPointer = input8;
-  cpu.executeOp(0xBA, 0xFF, 0xFF);
+
+  cpu.memory[0xF000] = 0xBA;
+  cpu.memory[0xF001] = 0xFF;
+  cpu.memory[0xF002] = 0xFF;
+
+  cpu.executeNextClock();
+
   CHECK(cpu.programCounter == 1);
   CHECK(cpu.cycle == 2);
   CHECK(cpu.x == input8);
@@ -31,11 +38,18 @@ TEST_CASE("TSX") {
 }
 
 TEST_CASE("TXS") {
-  CPU cpu{};
+  CPU cpu{nullptr};
+  cpu.programCounter = 0xF000;
 
   byte input8 = GENERATE(0x00, 0x12, 0xFF);
   cpu.x = input8;
-  cpu.executeOp(0x9A, 0xFF, 0xFF);
+
+  cpu.memory[0xF000] = 0x9A;
+  cpu.memory[0xF001] = 0xFF;
+  cpu.memory[0xF002] = 0xFF;
+
+  cpu.executeNextClock();
+
   CHECK(cpu.programCounter == 1);
   CHECK(cpu.cycle == 2);
   CHECK(cpu.stackPointer == input8);
@@ -43,11 +57,18 @@ TEST_CASE("TXS") {
 
 
 TEST_CASE("PHA") {
-  CPU cpu{};
+  CPU cpu{nullptr};
+  cpu.programCounter = 0xF000;
 
   byte input8 = GENERATE(0x00, 0x12, 0xFF);
   cpu.accumulator = input8;
-  cpu.executeOp(0x48, 0xFF, 0xFF);
+
+  cpu.memory[0xF000] = 0x48;
+  cpu.memory[0xF001] = 0xFF;
+  cpu.memory[0xF002] = 0xFF;
+
+  cpu.executeNextClock();
+
   CHECK(cpu.programCounter == 1);
   CHECK(cpu.cycle == 3);
   CHECK(cpu.stackPointer == 0xFE);
@@ -55,11 +76,18 @@ TEST_CASE("PHA") {
 }
 
 TEST_CASE("PHP") {
-  CPU cpu{};
+  CPU cpu{nullptr};
+  cpu.programCounter = 0xF000;
 
   byte input8 = GENERATE(0x00, 0x12, 0xFF);
   cpu.writeFlag(input8);
-  cpu.executeOp(0x08, 0xFF, 0xFF);
+
+  cpu.memory[0xF000] = 0x08;
+  cpu.memory[0xF001] = 0xFF;
+  cpu.memory[0xF002] = 0xFF;
+
+  cpu.executeNextClock();
+
   CHECK(cpu.programCounter == 1);
   CHECK(cpu.cycle == 3);
   CHECK(cpu.stackPointer == 0xFE);
@@ -67,12 +95,19 @@ TEST_CASE("PHP") {
 }
 
 TEST_CASE("PLA") {
-  CPU cpu{};
+  CPU cpu{nullptr};
+  cpu.programCounter = 0xF000;
 
   byte input8 = GENERATE(0x00, 0x12, 0xFF);
   cpu.memory[0x1FF] = input8;
   cpu.stackPointer = 0xFE;
-  cpu.executeOp(0x68, 0xFF, 0xFF);
+
+  cpu.memory[0xF000] = 0x68;
+  cpu.memory[0xF001] = 0xFF;
+  cpu.memory[0xF002] = 0xFF;
+
+  cpu.executeNextClock();
+
   CHECK(cpu.programCounter == 1);
   CHECK(cpu.cycle == 4);
   CHECK(cpu.stackPointer == 0xFF);
@@ -93,12 +128,19 @@ TEST_CASE("PLA") {
 }
 
 TEST_CASE("PLP") {
-  CPU cpu{};
+  CPU cpu{nullptr};
+  cpu.programCounter = 0xF000;
 
   byte input8 = GENERATE(0x00, 0x12, 0xFF);
   cpu.memory[0x1FF] = input8;
   cpu.stackPointer = 0xFE;
-  cpu.executeOp(0x28, 0xFF, 0xFF);
+
+  cpu.memory[0xF000] = 0x28;
+  cpu.memory[0xF001] = 0xFF;
+  cpu.memory[0xF002] = 0xFF;
+
+  cpu.executeNextClock();
+
   CHECK(cpu.programCounter == 1);
   CHECK(cpu.cycle == 4);
   CHECK(cpu.stackPointer == 0xFF);

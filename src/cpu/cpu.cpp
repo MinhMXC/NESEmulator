@@ -1,30 +1,76 @@
 #include "cpu.h"
 #include <cstdio>
 
-CPU::CPU(PPU& ppu) : ppu{ppu}, memory(0xFFFF), programCounter{0xFFFC}, stackPointer{0xFF}, accumulator{}, x{}, y{},
+// Main Operation
+CPU::CPU(PPU& ppu, InputHandler& inputHandler) : ppu{ppu}, inputHandler{inputHandler},
+memory(0xFFFF), programCounter{}, stackPointer{}, accumulator{}, x{}, y{},
 carry{}, zero{}, interruptDisable{}, decimal{}, breakCommand{}, overflow{}, negative{},
-cycle{} {}
+cycle{}, totalCycle{7} {}
 
-void CPU::executeNextClock() {
-  static uint64_t count{};
-
-
-  if (count % 3 == 0) {
-    if (cycle != 0) {
-      cycle--;
-    } else {
-//      if (count > 100000)
-//        printf("PC, OP, ARG1, ARG2: %d, %d, %d, %d\n", programCounter, memory[programCounter], memory[programCounter + 1], memory[programCounter + 2]);
-      executeOp(memory[programCounter], memory[programCounter + 1], memory[programCounter + 2]);
-      cycle--; // first cycle is executeOp
-    }
-  }
-
-  ppu.executeNextClock();
-
-  count++;
+void CPU::executeStartUpSequence() {
+  programCounter = memory[0xFFFC] + (memory[0xFFFC + 1] << 8);
+  stackPointer -= 3;
+  interruptDisable = true;
 }
 
+void CPU::executeNextClock() {
+  static bool isNMIHappening{false};
+
+  // Real Operation
+  // Checking for NMI
+  // ppu cycle must be larger than 2 because 0 & 1 cycle does not generate NMI so
+  // the 2 cycle instruction still execute as per usual (instruction for 2 cycle is fetched at the 1 cycle)
+  // NMI is only checked at instruction fetching
+  if ((ppu.readPPUStatusNoSideEffect() & 0b1000'0000) && (ppu.readPPUCtrlNoSideEffect() & 0b1000'0000) && !isNMIHappening && ppu.cycle > 2) {
+    memory[0x100 + stackPointer] = programCounter >> 8;
+    memory[0x100 + static_cast<byte>(stackPointer - 1)] = programCounter;
+    memory[0x100 + static_cast<byte>(stackPointer - 2)] = convertFlag();
+    stackPointer -= 3;
+    programCounter = memory[0xFFFA] + (memory[0xFFFB] << 8);
+    totalCycle += 7;
+    for (int i{}; i < 21; i++)
+      ppu.executeNextClock();
+    isNMIHappening = true;
+    return;
+  }
+
+  if (isNMIHappening && !(ppu.readPPUStatusNoSideEffect() & 0b1000'0000)) {
+    isNMIHappening = false;
+  }
+
+  if (totalCycle == 831547)
+    int i{};
+
+  // printf("%04X  %02X %02X %02X   A:%02X X:%02X Y:%02X P:%02X SP:%02X   PPU:%03d,%03d  CYC: %llu  Frame: %d\n", programCounter, memory[programCounter], memory[programCounter + 1], memory[programCounter + 2], accumulator, x, y, convertFlag(), stackPointer, ppu.initialCycle, ppu.initialScanline, totalCycle, ppu.frame);
+
+  OpInfo op{ opInfo[memory[programCounter]] };
+  totalCycle += op.cycle;
+
+  for (int i{}; i < op.cycle * 3; i++)
+    ppu.executeNextClock();
+
+  bool res = executeOp(memory[programCounter], memory[programCounter + 1], memory[programCounter + 2]);
+
+  for (int i{}; i < cycle * 3; i++)
+    ppu.executeNextClock();
+  totalCycle += cycle;
+  cycle = 0;
+
+  if (res)
+    programCounter += op.length;
+
+
+  // Testing
+//  OpInfo op{ opInfo[memory[programCounter]] };
+//  cycle = op.cycle;
+//  bool res = executeOp(memory[programCounter], memory[programCounter + 1], memory[programCounter + 2]);
+//  if (res)
+//    programCounter += op.length;
+}
+
+
+
+// Memory
 byte CPU::readMemory(word addr) {
   switch (addr) {
     case 0x0000 ... 0x1FFF:
@@ -43,7 +89,14 @@ byte CPU::readMemory(word addr) {
           return 0;
       }
     case 0x4000 ... 0x4017:
-      printf("APU IO read encountered\n");
+      switch (addr % 0x4000) {
+        case 0x16:
+            return inputHandler.readInput();
+        case 0x17:
+          return inputHandler.readInput();
+        default:
+          printf("APU IO read encountered\n");
+      }
       return 0;
     default:
       return memory[addr];
@@ -85,14 +138,33 @@ void CPU::writeMemory(word addr, byte input) {
       }
       break;
     case 0x4000 ... 0x4017:
-      printf("APU IO write encountered\n");
+      switch (addr % 0x4000) {
+        case 0x14:
+          ppu.writeOAMDma(memory, input);
+          cycle += totalCycle % 2 == 1 ? 513 : 514;
+          break;
+        case 0x16:
+          if (input == 0)
+            inputHandler.endPollInput();
+          else
+            inputHandler.startPollInput();
+          break;
+        default:
+          break;
+          //printf("%#04X\n", addr);
+          //printf("APU IO write encountered\n");
+      }
       break;
     default:
-      printf("writeMemory default encountered!\n");
+      memory[addr] = input;
+      // printf("writeMemory default encountered @ %04X!\n", addr);
       break;
   }
 }
 
+
+
+// Flags
 byte CPU::convertFlag() const {
   return (negative << 7) | (overflow << 6) | (1 << 5) | (decimal << 3) | (interruptDisable << 2) | (zero << 1) | (carry << 0);
 }
@@ -106,215 +178,281 @@ void CPU::writeFlag(byte input) {
   carry = input & 0b1;
 }
 
-void CPU::executeOp(byte op, byte arg1, byte arg2) {
+
+
+// OP Handler
+// Load Store
+void CPU::handleLDA(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte)) {
+  accumulator = (this->*readFn)(arg1, arg2);
+  zero = accumulator == 0;
+  negative = accumulator >= 128;
+}
+
+void CPU::handleLDX(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte)) {
+  x = (this->*readFn)(arg1, arg2);
+  zero = x == 0;
+  negative = x >= 128;
+}
+
+void CPU::handleLDY(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte)) {
+  y = (this->*readFn)(arg1, arg2);
+  zero = y == 0;
+  negative = y >= 128;
+}
+
+void CPU::handleSTA(byte arg1, byte arg2, void (CPU::*writeFn)(byte, byte, byte)) {
+  (this->*writeFn)(arg1, arg2, accumulator);
+}
+
+void CPU::handleSTX(byte arg1, byte arg2, void (CPU::*writeFn)(byte, byte, byte)) {
+  (this->*writeFn)(arg1, arg2, x);
+}
+
+void CPU::handleSTY(byte arg1, byte arg2, void (CPU::*writeFn)(byte, byte, byte)) {
+  (this->*writeFn)(arg1, arg2, y);
+}
+
+void CPU::handleBranch(byte arg, bool flag) {
+  if (flag) {
+    word initial{ static_cast<word>(programCounter + 2) };
+    programCounter += readRelative(arg, 0xFF);
+    cycle += 1;
+    if ((initial & 0xF00) != ((programCounter + 2) & 0xF00))
+      cycle += 1;
+  }
+}
+
+void CPU::handleASL(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte), void (CPU::*writeFn)(byte, byte, byte)) {
+  const byte temp{ (this->*readFn)(arg1, arg2) };
+  const byte res{ static_cast<byte>(temp << 1) };
+  (this->*writeFn)(arg1, arg2, res);
+  carry = temp >= 128;
+  zero = res == 0;
+  negative = res >= 128;
+}
+
+void CPU::handleLSR(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte), void (CPU::*writeFn)(byte, byte, byte)) {
+  const byte temp{ (this->*readFn)(arg1, arg2) };
+  const byte res{ static_cast<byte>(temp >> 1) };
+  (this->*writeFn)(arg1, arg2, res);
+  carry = temp & 0b1;
+  zero = res == 0;
+  negative = res >= 128;
+}
+
+void CPU::handleROL(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte), void (CPU::*writeFn)(byte, byte, byte)) {
+  const byte temp{ (this->*readFn)(arg1, arg2) };
+  const byte res{ static_cast<byte>((temp << 1) + carry) };
+  (this->*writeFn)(arg1, arg2, res);
+  carry = temp & 0b1000'0000;
+  zero = res == 0;
+  negative = res >= 128;
+}
+
+void CPU::handleROR(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte), void (CPU::*writeFn)(byte, byte, byte)) {
+  const byte temp{ (this->*readFn)(arg1, arg2) };
+  const byte res{ static_cast<byte>((temp >> 1) + (carry << 7)) };
+  (this->*writeFn)(arg1, arg2, res);
+  carry = temp & 0b1;
+  zero = res == 0;
+  negative = res >= 128;
+}
+
+void CPU::handleINC(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte), void (CPU::*writeFn)(byte, byte, byte)) {
+  const byte temp{ static_cast<byte>((this->*readFn)(arg1, arg2) + 1) };
+  (this->*writeFn)(arg1, arg2, temp);
+  zero = temp == 0;
+  negative = temp >= 128;
+}
+
+void CPU::handleDEC(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte), void (CPU::*writeFn)(byte, byte, byte)) {
+  const byte temp{ static_cast<byte>((this->*readFn)(arg1, arg2) - 1) };
+  (this->*writeFn)(arg1, arg2, temp);
+  zero = temp == 0;
+  negative = temp >= 128;
+}
+
+void CPU::handleADC(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte)) {
+  const byte acc{ accumulator };
+  const byte add{ (this->*readFn)(arg1, arg2) };
+  const int res{ accumulator + (this->*readFn)(arg1, arg2) + carry };
+  accumulator = res;
+  carry = res > 255;
+  overflow = (acc < 128 && add < 128 && accumulator >= 128) || (acc >= 128 && add >= 128 && accumulator < 128);
+  zero = accumulator == 0;
+  negative = accumulator >= 128;
+}
+
+void CPU::handleSBC(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte)) {
+  const byte acc{ accumulator };
+  const byte sub{ (this->*readFn)(arg1, arg2) };
+  const int res{ accumulator - sub - !carry };
+  accumulator = res;
+  carry = res >= 0;
+  overflow = (acc >= 128 && sub < 128 && accumulator < 128) || (acc < 128 && sub >= 128 && accumulator >= 128);
+  zero = accumulator == 0;
+  negative = accumulator >= 128;
+}
+
+void CPU::handleCMP(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte)) {
+  const int res{ accumulator - (this->*readFn)(arg1, arg2) };
+  carry = res >= 0;
+  zero = res == 0;
+  negative = static_cast<byte>(res) >= 128;
+}
+
+void CPU::handleCPX(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte)) {
+  const int res{ x - (this->*readFn)(arg1, arg2) };
+  carry = res >= 0;
+  zero = res == 0;
+  negative = static_cast<byte>(res) >= 128;
+}
+
+void CPU::handleCPY(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte)) {
+  const int res{ y - (this->*readFn)(arg1, arg2) };
+  carry = res >= 0;
+  zero = res == 0;
+  negative = static_cast<byte>(res) >= 128;
+}
+
+void CPU::handleAND(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte)) {
+  accumulator &= (this->*readFn)(arg1, arg2);
+  zero = accumulator == 0;
+  negative = accumulator >= 128;
+}
+
+void CPU::handleEOR(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte)) {
+  accumulator ^= (this->*readFn)(arg1, arg2);
+  zero = accumulator == 0;
+  negative = accumulator >= 128;
+}
+
+void CPU::handleORA(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte)) {
+  accumulator |= (this->*readFn)(arg1, arg2);
+  zero = accumulator == 0;
+  negative = accumulator >= 128;
+}
+
+void CPU::handleBIT(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte)) {
+  byte mem{ (this->*readFn)(arg1, arg2) };
+  zero = (accumulator & mem) == 0;
+  overflow = (mem & 0b0100'0000) > 0;
+  negative = (mem & 0b1000'0000) > 0;
+}
+
+
+
+bool CPU::executeOp(byte op, byte arg1, byte arg2) {
   switch(op) {
     // Load Store
     // LDA
     case 0xA9:
-      programCounter += 2;
-      cycle = 2;
-      accumulator = arg1;
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
+      handleLDA(arg1, arg2, &CPU::readImmediate);
       break;
     case 0xA5:
-      programCounter += 2;
-      cycle = 3;
-      accumulator = readZeroPage(arg1);
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
+      handleLDA(arg1, arg2, &CPU::readZeroPage);
       break;
     case 0xB5:
-      programCounter += 2;
-      cycle = 4;
-      accumulator = readZeroPageX(arg1);
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
+      handleLDA(arg1, arg2, &CPU::readZeroPageX);
       break;
     case 0xAD:
-      programCounter += 3;
-      cycle = 4;
-      accumulator = readAbsolute(arg1, arg2);
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
+      handleLDA(arg1, arg2, &CPU::readAbsolute);
       break;
     case 0xBD:
-      programCounter += 3;
-      cycle = 4;
-      accumulator = readAbsoluteX(arg1, arg2);
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
+      handleLDA(arg1, arg2, &CPU::readAbsoluteX);
       break;
     case 0xB9:
-      programCounter += 3;
-      cycle = 4;
-      accumulator = readAbsoluteY(arg1, arg2);
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
+      handleLDA(arg1, arg2, &CPU::readAbsoluteY);
       break;
     case 0xA1:
-      programCounter += 2;
-      cycle = 6;
-      accumulator = readIndexedIndirect(arg1);
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
+      handleLDA(arg1, arg2, &CPU::readIndexedIndirect);
       break;
     case 0xB1:
-      programCounter += 2;
-      cycle = 5;
-      accumulator = readIndirectIndexed(arg1);
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
+      handleLDA(arg1, arg2, &CPU::readIndirectIndexed);
       break;
 
 
     // LDX
     case 0xA2:
-      programCounter += 2;
-      cycle = 2;
-      x = arg1;
-      zero = x == 0;
-      negative = x >= 128;
+      handleLDX(arg1, arg2, &CPU::readImmediate);
       break;
     case 0xA6:
-      programCounter += 2;
-      cycle = 3;
-      x = readZeroPage(arg1);
-      zero = x == 0;
-      negative = x >= 128;
+      handleLDX(arg1, arg2, &CPU::readZeroPage);
       break;
     case 0xB6:
-      programCounter += 2;
-      cycle = 4;
-      x = readZeroPageY(arg1);
-      zero = x == 0;
-      negative = x >= 128;
+      handleLDX(arg1, arg2, &CPU::readZeroPageY);
       break;
     case 0xAE:
-      programCounter += 3;
-      cycle = 4;
-      x = readAbsolute(arg1, arg2);
-      zero = x == 0;
-      negative = x >= 128;
+      handleLDX(arg1, arg2, &CPU::readAbsolute);
       break;
     case 0xBE:
-      programCounter += 3;
-      cycle = 4;
-      x = readAbsoluteY(arg1, arg2);
-      zero = x == 0;
-      negative = x >= 128;
+      handleLDX(arg1, arg2, &CPU::readAbsoluteY);
       break;
 
 
     // LDY
     case 0xA0:
-      programCounter += 2;
-      cycle = 2;
-      y = arg1;
-      zero = y == 0;
-      negative = y >= 128;
+      handleLDY(arg1, arg2, &CPU::readImmediate);
       break;
     case 0xA4:
-      programCounter += 2;
-      cycle = 3;
-      y = readZeroPage(arg1);
-      zero = y == 0;
-      negative = y >= 128;
+      handleLDY(arg1, arg2, &CPU::readZeroPage);
       break;
     case 0xB4:
-      programCounter += 2;
-      cycle = 4;
-      y = readZeroPageX(arg1);
-      zero = y == 0;
-      negative = y >= 128;
+      handleLDY(arg1, arg2, &CPU::readZeroPageX);
       break;
     case 0xAC:
-      programCounter += 3;
-      cycle = 4;
-      y = readAbsolute(arg1, arg2);
-      zero = y == 0;
-      negative = y >= 128;
+      handleLDY(arg1, arg2, &CPU::readAbsolute);
       break;
     case 0xBC:
-      programCounter += 3;
-      cycle = 4;
-      y = readAbsoluteX(arg1, arg2);
-      zero = y == 0;
-      negative = y >= 128;
+      handleLDY(arg1, arg2, &CPU::readAbsoluteX);
       break;
 
 
     // STA
     case 0x85:
-      programCounter += 2;
-      cycle = 3;
-      writeZeroPage(arg1, accumulator);
+      handleSTA(arg1, arg2, &CPU::writeZeroPage);
       break;
     case 0x95:
-      programCounter += 2;
-      cycle = 4;
-      writeZeroPageX(arg1, accumulator);
+      handleSTA(arg1, arg2, &CPU::writeZeroPageX);
       break;
     case 0x8D:
-      programCounter += 3;
-      cycle = 4;
-      writeAbsolute(arg1, arg2, accumulator);
+      handleSTA(arg1, arg2, &CPU::writeAbsolute);
       break;
     case 0x9D:
-      programCounter += 3;
-      cycle = 5;
-      writeAbsoluteX(arg1, arg2, accumulator);
+      handleSTA(arg1, arg2, &CPU::writeAbsoluteX);
       break;
     case 0x99:
-      programCounter += 3;
-      cycle = 5;
-      writeAbsoluteY(arg1, arg2, accumulator);
+      handleSTA(arg1, arg2, &CPU::writeAbsoluteY);
       break;
     case 0x81:
-      programCounter += 2;
-      cycle = 6;
-      writeIndexedIndirect(arg1, accumulator);
+      handleSTA(arg1, arg2, &CPU::writeIndexedIndirect);
       break;
     case 0x91:
-      programCounter += 2;
-      cycle = 6;
-      writeIndirectIndexed(arg1, accumulator);
+      handleSTA(arg1, arg2, &CPU::writeIndirectIndexed);
       break;
 
 
     // STX
     case 0x86:
-      programCounter += 2;
-      cycle = 3;
-      writeZeroPage(arg1, x);
+      handleSTX(arg1, arg2, &CPU::writeZeroPage);
       break;
     case 0x96:
-      programCounter += 2;
-      cycle = 4;
-      writeZeroPageY(arg1, x);
+      handleSTX(arg1, arg2, &CPU::writeZeroPageY);
       break;
     case 0x8E:
-      programCounter += 3;
-      cycle = 4;
-      writeAbsolute(arg1, arg2, x);
+      handleSTX(arg1, arg2, &CPU::writeAbsolute);
       break;
 
 
     // STY
     case 0x84:
-      programCounter += 2;
-      cycle = 3;
-      writeZeroPage(arg1, y);
+      handleSTY(arg1, arg2, &CPU::writeZeroPage);
       break;
     case 0x94:
-      programCounter += 2;
-      cycle = 4;
-      writeZeroPageX(arg1, y);
+      handleSTY(arg1, arg2, &CPU::writeZeroPageX);
       break;
     case 0x8C:
-      programCounter += 3;
-      cycle = 4;
-      writeAbsolute(arg1, arg2, y);
+      handleSTY(arg1, arg2, &CPU::writeAbsolute);
       break;
 
 
@@ -324,8 +462,6 @@ void CPU::executeOp(byte op, byte arg1, byte arg2) {
     // Register Transfer
     // TAX
     case 0xAA:
-      programCounter += 1;
-      cycle = 2;
       x = accumulator;
       zero = x == 0;
       negative = x >= 128;
@@ -334,8 +470,6 @@ void CPU::executeOp(byte op, byte arg1, byte arg2) {
 
     // TAY
     case 0xA8:
-      programCounter += 1;
-      cycle = 2;
       y = accumulator;
       zero = y == 0;
       negative = y >= 128;
@@ -344,8 +478,6 @@ void CPU::executeOp(byte op, byte arg1, byte arg2) {
 
     // TXA
     case 0x8A:
-      programCounter += 1;
-      cycle = 2;
       accumulator = x;
       zero = accumulator == 0;
       negative = accumulator >= 128;
@@ -354,8 +486,6 @@ void CPU::executeOp(byte op, byte arg1, byte arg2) {
 
     // TYA
     case 0x98:
-      programCounter += 1;
-      cycle = 2;
       accumulator = y;
       zero = accumulator == 0;
       negative = accumulator >= 128;
@@ -368,8 +498,6 @@ void CPU::executeOp(byte op, byte arg1, byte arg2) {
     // Stack Operation
     // TSX
     case 0xBA:
-      programCounter += 1;
-      cycle = 2;
       x = stackPointer;
       zero = x == 0;
       negative = x >= 128;
@@ -378,16 +506,12 @@ void CPU::executeOp(byte op, byte arg1, byte arg2) {
 
     // TXS
     case 0x9A:
-      programCounter += 1;
-      cycle = 2;
       stackPointer = x;
       break;
 
 
     // PHA
     case 0x48:
-      programCounter += 1;
-      cycle = 3;
       writeMemory(0x100 + stackPointer, accumulator);
       stackPointer--;
       break;
@@ -395,8 +519,6 @@ void CPU::executeOp(byte op, byte arg1, byte arg2) {
 
     // PHP
     case 0x08:
-      programCounter += 1;
-      cycle = 3;
       writeMemory(0x100 + stackPointer, convertFlag());
       stackPointer--;
       break;
@@ -404,13 +526,6 @@ void CPU::executeOp(byte op, byte arg1, byte arg2) {
 
     // PLA
     case 0x68:
-      programCounter += 1;
-      cycle = 4;
-      if (stackPointer == 0xFF) {
-        printf("Stack is empty. Returning 0!");
-        accumulator = 0;
-        break;
-      }
       accumulator = readMemory(0x100 + stackPointer + 1);
       stackPointer++;
       zero = accumulator == 0;
@@ -420,13 +535,6 @@ void CPU::executeOp(byte op, byte arg1, byte arg2) {
 
     // PLP
     case 0x28:
-      programCounter += 1;
-      cycle = 4;
-      if (stackPointer == 0xFF) {
-        printf("Stack is empty. Returning 0!");
-        accumulator = 0;
-        break;
-      }
       writeFlag(readMemory(0x100 + stackPointer + 1));
       stackPointer++;
       break;
@@ -438,202 +546,92 @@ void CPU::executeOp(byte op, byte arg1, byte arg2) {
     // Logical
     // AND
     case 0x29:
-      programCounter += 2;
-      cycle = 2;
-      accumulator &= arg1;
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
+      handleAND(arg1, arg2, &CPU::readImmediate);
       break;
     case 0x25:
-      programCounter += 2;
-      cycle = 3;
-      accumulator &= readZeroPage(arg1);
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
+      handleAND(arg1, arg2, &CPU::readZeroPage);
       break;
     case 0x35:
-      programCounter += 2;
-      cycle = 4;
-      accumulator &= readZeroPageX(arg1);
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
+      handleAND(arg1, arg2, &CPU::readZeroPageX);
       break;
     case 0x2D:
-      programCounter += 3;
-      cycle = 4;
-      accumulator &= readAbsolute(arg1, arg2);
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
+      handleAND(arg1, arg2, &CPU::readAbsolute);
       break;
     case 0x3D:
-      programCounter += 3;
-      cycle = 4;
-      accumulator &= readAbsoluteX(arg1, arg2);
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
+      handleAND(arg1, arg2, &CPU::readAbsoluteX);
       break;
     case 0x39:
-      programCounter += 3;
-      cycle = 4;
-      accumulator &= readAbsoluteY(arg1, arg2);
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
+      handleAND(arg1, arg2, &CPU::readAbsoluteY);
       break;
     case 0x21:
-      programCounter += 2;
-      cycle = 6;
-      accumulator &= readIndexedIndirect(arg1);
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
+      handleAND(arg1, arg2, &CPU::readIndexedIndirect);
       break;
     case 0x31:
-      programCounter += 2;
-      cycle = 5;
-      accumulator &= readIndirectIndexed(arg1);
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
+      handleAND(arg1, arg2, &CPU::readIndirectIndexed);
       break;
 
 
     // EOR
     case 0x49:
-      programCounter += 2;
-      cycle = 2;
-      accumulator ^= arg1;
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
+      handleEOR(arg1, arg2, &CPU::readImmediate);
       break;
     case 0x45:
-      programCounter += 2;
-      cycle = 3;
-      accumulator ^= readZeroPage(arg1);
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
+      handleEOR(arg1, arg2, &CPU::readZeroPage);
       break;
     case 0x55:
-      programCounter += 2;
-      cycle = 4;
-      accumulator ^= readZeroPageX(arg1);
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
+      handleEOR(arg1, arg2, &CPU::readZeroPageX);
       break;
     case 0x4D:
-      programCounter += 3;
-      cycle = 4;
-      accumulator ^= readAbsolute(arg1, arg2);
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
+      handleEOR(arg1, arg2, &CPU::readAbsolute);
       break;
     case 0x5D:
-      programCounter += 3;
-      cycle = 4;
-      accumulator ^= readAbsoluteX(arg1, arg2);
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
+      handleEOR(arg1, arg2, &CPU::readAbsoluteX);
       break;
     case 0x59:
-      programCounter += 3;
-      cycle = 4;
-      accumulator ^= readAbsoluteY(arg1, arg2);
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
+      handleEOR(arg1, arg2, &CPU::readAbsoluteY);
       break;
     case 0x41:
-      programCounter += 2;
-      cycle = 6;
-      accumulator ^= readIndexedIndirect(arg1);
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
+      handleEOR(arg1, arg2, &CPU::readIndexedIndirect);
       break;
     case 0x51:
-      programCounter += 2;
-      cycle = 5;
-      accumulator ^= readIndirectIndexed(arg1);
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
+      handleEOR(arg1, arg2, &CPU::readIndirectIndexed);
       break;
 
 
 
     // ORA
     case 0x09:
-      programCounter += 2;
-      cycle = 2;
-      accumulator |= arg1;
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
+      handleORA(arg1, arg2, &CPU::readImmediate);
       break;
     case 0x05:
-      programCounter += 2;
-      cycle = 3;
-      accumulator |= readZeroPage(arg1);
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
+      handleORA(arg1, arg2, &CPU::readZeroPage);
       break;
     case 0x15:
-      programCounter += 2;
-      cycle = 4;
-      accumulator |= readZeroPageX(arg1);
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
+      handleORA(arg1, arg2, &CPU::readZeroPageX);
       break;
     case 0x0D:
-      programCounter += 3;
-      cycle = 4;
-      accumulator |= readAbsolute(arg1, arg2);
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
+      handleORA(arg1, arg2, &CPU::readAbsolute);
       break;
     case 0x1D:
-      programCounter += 3;
-      cycle = 4;
-      accumulator |= readAbsoluteX(arg1, arg2);
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
+      handleORA(arg1, arg2, &CPU::readAbsoluteX);
       break;
     case 0x19:
-      programCounter += 3;
-      cycle = 4;
-      accumulator |= readAbsoluteY(arg1, arg2);
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
+      handleORA(arg1, arg2, &CPU::readAbsoluteY);
       break;
     case 0x01:
-      programCounter += 2;
-      cycle = 6;
-      accumulator |= readIndexedIndirect(arg1);
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
+      handleORA(arg1, arg2, &CPU::readIndexedIndirect);
       break;
     case 0x11:
-      programCounter += 2;
-      cycle = 5;
-      accumulator |= readIndirectIndexed(arg1);
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
+      handleORA(arg1, arg2, &CPU::readIndirectIndexed);
       break;
 
 
     // BIT
     case 0x24:
-    {
-      programCounter += 2;
-      cycle = 3;
-      byte mem{ readMemory(arg1) };
-      zero = (accumulator & mem) == 0;
-      overflow = (mem & 0b0100'0000) > 0;
-      negative = (mem & 0b1000'0000) > 0;
-    }
+      handleBIT(arg1, arg2, &CPU::readZeroPage);
       break;
     case 0x2C:
-    {
-      programCounter += 3;
-      cycle = 4;
-      byte mem{ readMemory(arg1 + (arg2 << 8)) };
-      zero = (accumulator & mem) == 0;
-      overflow = (mem & 0b0100'0000) > 0;
-      negative = (mem & 0b1000'0000) > 0;
-    }
+      handleBIT(arg1, arg2, &CPU::readAbsolute);
       break;
 
 
@@ -643,332 +641,106 @@ void CPU::executeOp(byte op, byte arg1, byte arg2) {
     // Arithmetic
     // ADC
     case 0x69:
-    {
-      programCounter += 2;
-      cycle = 2;
-      const int res{ accumulator + arg1 + carry };
-      accumulator = res;
-      carry = res > 255;
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
-    }
+      handleADC(arg1, arg2, &CPU::readImmediate);
       break;
     case 0x65:
-    {
-      programCounter += 2;
-      cycle = 3;
-      const int res{ accumulator + readZeroPage(arg1) + carry };
-      accumulator = res;
-      carry = res > 255;
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
-    }
+      handleADC(arg1, arg2, &CPU::readZeroPage);
       break;
     case 0x75:
-    {
-      programCounter += 2;
-      cycle = 4;
-      const int res{ accumulator + readZeroPageX(arg1) + carry };
-      accumulator = res;
-      carry = res > 255;
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
-    }
+      handleADC(arg1, arg2, &CPU::readZeroPageX);
       break;
     case 0x6D:
-    {
-      programCounter += 3;
-      cycle = 4;
-      const int res{ accumulator + readAbsolute(arg1, arg2) + carry };
-      accumulator = res;
-      carry = res > 255;
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
-    }
+      handleADC(arg1, arg2, &CPU::readAbsolute);
       break;
     case 0x7D:
-    {
-      programCounter += 3;
-      cycle = 4;
-      const int res{ accumulator + readAbsoluteX(arg1, arg2) + carry };
-      accumulator = res;
-      carry = res > 255;
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
-    }
+      handleADC(arg1, arg2, &CPU::readAbsoluteX);
       break;
     case 0x79:
-    {
-      programCounter += 3;
-      cycle = 4;
-      const int res{ accumulator + readAbsoluteY(arg1, arg2) + carry };
-      accumulator = res;
-      carry = res > 255;
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
-    }
+      handleADC(arg1, arg2, &CPU::readAbsoluteY);
       break;
     case 0x61:
-    {
-      programCounter += 2;
-      cycle = 6;
-      const int res{ accumulator + readIndexedIndirect(arg1) + carry };
-      accumulator = res;
-      carry = res > 255;
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
-    }
+      handleADC(arg1, arg2, &CPU::readIndexedIndirect);
       break;
     case 0x71:
-    {
-      programCounter += 2;
-      cycle = 5;
-      const int res{ accumulator + readIndirectIndexed(arg1) + carry };
-      accumulator = res;
-      carry = res > 255;
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
-    }
+      handleADC(arg1, arg2, &CPU::readIndirectIndexed);
       break;
 
 
     // SBC
     case 0xE9:
-    {
-      programCounter += 2;
-      cycle = 2;
-      const int res{ accumulator - arg1 - carry };
-      accumulator = res;
-      carry = res < 0;
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
-    }
+      handleSBC(arg1, arg2, &CPU::readImmediate);
       break;
     case 0xE5:
-    {
-      programCounter += 2;
-      cycle = 3;
-      const int res{ accumulator - readZeroPage(arg1) - carry };
-      accumulator = res;
-      carry = res < 0;
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
-    }
+      handleSBC(arg1, arg2, &CPU::readZeroPage);
       break;
     case 0xF5:
-    {
-      programCounter += 2;
-      cycle = 4;
-      const int res{ accumulator - readZeroPageX(arg1) - carry };
-      accumulator = res;
-      carry = res < 0;
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
-    }
+      handleSBC(arg1, arg2, &CPU::readZeroPageX);
       break;
     case 0xED:
-    {
-      programCounter += 3;
-      cycle = 4;
-      const int res{ accumulator - readAbsolute(arg1, arg2) - carry };
-      accumulator = res;
-      carry = res < 0;
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
-    }
+      handleSBC(arg1, arg2, &CPU::readAbsolute);
       break;
     case 0xFD:
-    {
-      programCounter += 3;
-      cycle = 4;
-      const int res{ accumulator - readAbsoluteX(arg1, arg2) - carry };
-      accumulator = res;
-      carry = res < 0;
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
-    }
+      handleSBC(arg1, arg2, &CPU::readAbsoluteX);
       break;
     case 0xF9:
-    {
-      programCounter += 3;
-      cycle = 4;
-      const int res{ accumulator - readAbsoluteY(arg1, arg2) - carry };
-      accumulator = res;
-      carry = res < 0;
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
-    }
+      handleSBC(arg1, arg2, &CPU::readAbsoluteY);
       break;
     case 0xE1:
-    {
-      programCounter += 2;
-      cycle = 6;
-      const int res{ accumulator - readIndexedIndirect(arg1) - carry };
-      accumulator = res;
-      carry = res < 0;
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
-    }
+      handleSBC(arg1, arg2, &CPU::readIndexedIndirect);
       break;
     case 0xF1:
-    {
-      programCounter += 2;
-      cycle = 5;
-      const int res{ accumulator - readIndirectIndexed(arg1) - carry };
-      accumulator = res;
-      carry = res < 0;
-      zero = accumulator == 0;
-      negative = accumulator >= 128;
-    }
+      handleSBC(arg1, arg2, &CPU::readIndirectIndexed);
       break;
 
 
     // CMP
     case 0xC9:
-    {
-      programCounter += 2;
-      cycle = 2;
-      const int res{ accumulator - arg1 };
-      carry = res >= 0;
-      zero = res == 0;
-      negative = static_cast<byte>(res) >= 128;
-    }
+      handleCMP(arg1, arg2, &CPU::readImmediate);
       break;
     case 0xC5:
-    {
-      programCounter += 2;
-      cycle = 3;
-      const int res{ accumulator - readZeroPage(arg1) };
-      carry = res >= 0;
-      zero = res == 0;
-      negative = static_cast<byte>(res) >= 128;
-    }
+      handleCMP(arg1, arg2, &CPU::readZeroPage);
       break;
     case 0xD5:
-    {
-      programCounter += 2;
-      cycle = 4;
-      const int res{ accumulator - readZeroPageX(arg1) };
-      carry = res >= 0;
-      zero = res == 0;
-      negative = static_cast<byte>(res) >= 128;
-    }
+      handleCMP(arg1, arg2, &CPU::readZeroPageX);
       break;
     case 0xCD:
-    {
-      programCounter += 3;
-      cycle = 4;
-      const int res{ accumulator - readAbsolute(arg1, arg2) };
-      carry = res >= 0;
-      zero = res == 0;
-      negative = static_cast<byte>(res) >= 128;
-    }
+      handleCMP(arg1, arg2, &CPU::readAbsolute);
       break;
     case 0xDD:
-    {
-      programCounter += 3;
-      cycle = 4;
-      const int res{ accumulator - readAbsoluteX(arg1, arg2) };
-      carry = res >= 0;
-      zero = res == 0;
-      negative = static_cast<byte>(res) >= 128;
-    }
+      handleCMP(arg1, arg2, &CPU::readAbsoluteX);
       break;
     case 0xD9:
-    {
-      programCounter += 3;
-      cycle = 4;
-      const int res{ accumulator - readAbsoluteY(arg1, arg2) };
-      carry = res >= 0;
-      zero = res == 0;
-      negative = static_cast<byte>(res) >= 128;
-    }
+      handleCMP(arg1, arg2, &CPU::readAbsoluteY);
       break;
     case 0xC1:
-    {
-      programCounter += 2;
-      cycle = 6;
-      const int res{ accumulator - readIndexedIndirect(arg1) };
-      carry = res >= 0;
-      zero = res == 0;
-      negative = static_cast<byte>(res) >= 128;
-    }
+      handleCMP(arg1, arg2, &CPU::readIndexedIndirect);
       break;
     case 0xD1:
-    {
-      programCounter += 2;
-      cycle = 5;
-      const int res{ accumulator - readIndirectIndexed(arg1) };
-      carry = res >= 0;
-      zero = res == 0;
-      negative = static_cast<byte>(res) >= 128;
-    }
+      handleCMP(arg1, arg2, &CPU::readIndirectIndexed);
       break;
 
 
     // CPX
     case 0xE0:
-    {
-      programCounter += 2;
-      cycle = 2;
-      const int res{ x - arg1 };
-      carry = res >= 0;
-      zero = res == 0;
-      negative = static_cast<byte>(res) >= 128;
-    }
+      handleCPX(arg1, arg2, &CPU::readImmediate);
       break;
     case 0xE4:
-    {
-      programCounter += 2;
-      cycle = 3;
-      const int res{ x - readZeroPage(arg1) };
-      carry = res >= 0;
-      zero = res == 0;
-      negative = static_cast<byte>(res) >= 128;
-    }
+      handleCPX(arg1, arg2, &CPU::readZeroPage);
       break;
     case 0xEC:
-    {
-      programCounter += 3;
-      cycle = 4;
-      const int res{ x - readAbsolute(arg1, arg2) };
-      carry = res >= 0;
-      zero = res == 0;
-      negative = static_cast<byte>(res) >= 128;
-    }
+      handleCPX(arg1, arg2, &CPU::readAbsolute);
       break;
 
 
     // CPY
     case 0xC0:
-    {
-      programCounter += 2;
-      cycle = 2;
-      const int res{ y - arg1 };
-      carry = res >= 0;
-      zero = res == 0;
-      negative = static_cast<byte>(res) >= 128;
-    }
+      handleCPY(arg1, arg2, &CPU::readImmediate);
       break;
     case 0xC4:
-    {
-      programCounter += 2;
-      cycle = 3;
-      const int res{ y - readZeroPage(arg1) };
-      carry = res >= 0;
-      zero = res == 0;
-      negative = static_cast<byte>(res) >= 128;
-    }
+      handleCPY(arg1, arg2, &CPU::readZeroPage);
       break;
     case 0xCC:
-    {
-      programCounter += 3;
-      cycle = 4;
-      const int res{ y - readAbsolute(arg1, arg2) };
-      carry = res >= 0;
-      zero = res == 0;
-      negative = static_cast<byte>(res) >= 128;
-    }
+      handleCPY(arg1, arg2, &CPU::readAbsolute);
       break;
 
 
@@ -978,51 +750,21 @@ void CPU::executeOp(byte op, byte arg1, byte arg2) {
     // Increment Decrement
     // INC
     case 0xE6:
-    {
-      programCounter += 2;
-      cycle = 5;
-      const byte temp{ static_cast<byte>(readZeroPage(arg1) + 1) };
-      writeZeroPage(arg1, temp);
-      zero = temp == 0;
-      negative = temp >= 128;
-    }
+      handleINC(arg1, arg2, &CPU::readZeroPage, &CPU::writeZeroPage);
       break;
     case 0xF6:
-    {
-      programCounter += 2;
-      cycle = 6;
-      const byte temp{ static_cast<byte>(readZeroPageX(arg1) + 1) };
-      writeZeroPageX(arg1, temp);
-      zero = temp == 0;
-      negative = temp >= 128;
-    }
+      handleINC(arg1, arg2, &CPU::readZeroPageX, &CPU::writeZeroPageX);
       break;
     case 0xEE:
-    {
-      programCounter += 3;
-      cycle = 6;
-      const byte temp{ static_cast<byte>(readAbsolute(arg1, arg2) + 1) };
-      writeAbsolute(arg1, arg2, temp);
-      zero = temp == 0;
-      negative = temp >= 128;
-    }
+      handleINC(arg1, arg2, &CPU::readAbsolute, &CPU::writeAbsolute);
       break;
     case 0xFE:
-    {
-      programCounter += 3;
-      cycle = 7;
-      const byte temp{ static_cast<byte>(readMemory(arg1 + (arg2 << 8) + x) + 1) };
-      writeMemory(arg1 + (arg2 << 8) + x, temp);
-      zero = temp == 0;
-      negative = temp >= 128;
-    }
+      handleINC(arg1, arg2, &CPU::readAbsoluteXNoCycle, &CPU::writeAbsoluteX);
       break;
 
 
     // INX
     case 0xE8:
-      programCounter += 1;
-      cycle = 2;
       x++;
       zero = x == 0;
       negative = x >= 128;
@@ -1031,8 +773,6 @@ void CPU::executeOp(byte op, byte arg1, byte arg2) {
 
     // INY
     case 0xC8:
-      programCounter += 1;
-      cycle = 2;
       y++;
       zero = y == 0;
       negative = y >= 128;
@@ -1041,51 +781,21 @@ void CPU::executeOp(byte op, byte arg1, byte arg2) {
 
     // DEC
     case 0xC6:
-    {
-      programCounter += 2;
-      cycle = 5;
-      const byte temp{ static_cast<byte>(readZeroPage(arg1) - 1) };
-      writeZeroPage(arg1, temp);
-      zero = temp == 0;
-      negative = temp >= 128;
-    }
+      handleDEC(arg1, arg2, &CPU::readZeroPage, &CPU::writeZeroPage);
       break;
     case 0xD6:
-    {
-      programCounter += 2;
-      cycle = 6;
-      const byte temp{ static_cast<byte>(readZeroPageX(arg1) - 1) };
-      writeZeroPageX(arg1, temp);
-      zero = temp == 0;
-      negative = temp >= 128;
-    }
+      handleDEC(arg1, arg2, &CPU::readZeroPageX, &CPU::writeZeroPageX);
       break;
     case 0xCE:
-    {
-      programCounter += 3;
-      cycle = 6;
-      const byte temp{ static_cast<byte>(readAbsolute(arg1, arg2) - 1) };
-      writeAbsolute(arg1, arg2, temp);
-      zero = temp == 0;
-      negative = temp >= 128;
-    }
+      handleDEC(arg1, arg2, &CPU::readAbsolute, &CPU::writeAbsolute);
       break;
     case 0xDE:
-    {
-      programCounter += 3;
-      cycle = 7;
-      const byte temp{ static_cast<byte>(readMemory(arg1 + (arg2 << 8) + x) - 1) };
-      writeMemory(arg1 + (arg2 << 8) + x, temp);
-      zero = temp == 0;
-      negative = temp >= 128;
-    }
+      handleDEC(arg1, arg2, &CPU::readAbsoluteXNoCycle, &CPU::writeAbsoluteX);
       break;
 
 
     // DEX
     case 0xCA:
-      programCounter += 1;
-      cycle = 2;
       x--;
       zero = x == 0;
       negative = x >= 128;
@@ -1094,8 +804,6 @@ void CPU::executeOp(byte op, byte arg1, byte arg2) {
 
     // DEY
     case 0x88:
-      programCounter += 1;
-      cycle = 2;
       y--;
       zero = y == 0;
       negative = y >= 128;
@@ -1108,127 +816,49 @@ void CPU::executeOp(byte op, byte arg1, byte arg2) {
     // Shift
     // ASL
     case 0x0A:
-      programCounter += 1;
-      cycle = 2;
       carry = accumulator >= 128;
       accumulator <<= 1;
       zero = accumulator == 0;
       negative = accumulator >= 128;
       break;
     case 0x06:
-    {
-      programCounter += 2;
-      cycle = 5;
-      const byte temp{ readZeroPage(arg1) };
-      const byte res{ static_cast<byte>(temp << 1) };
-      writeZeroPage(arg1, res);
-      carry = temp >= 128;
-      zero = res == 0;
-      negative = res >= 128;
-    }
+      handleASL(arg1, arg2, &CPU::readZeroPage, &CPU::writeZeroPage);
       break;
     case 0x16:
-    {
-      programCounter += 2;
-      cycle = 6;
-      const byte temp{ readZeroPageX(arg1) };
-      const byte res{ static_cast<byte>(temp << 1) };
-      writeZeroPageX(arg1, res);
-      carry = temp >= 128;
-      zero = res == 0;
-      negative = res >= 128;
-    }
+      handleASL(arg1, arg2, &CPU::readZeroPageX, &CPU::writeZeroPageX);
       break;
     case 0x0E:
-    {
-      programCounter += 3;
-      cycle = 6;
-      const byte temp{ readAbsolute(arg1, arg2) };
-      const byte res{ static_cast<byte>(temp << 1) };
-      writeAbsolute(arg1, arg2, res);
-      carry = temp >= 128;
-      zero = res == 0;
-      negative = res >= 128;
-    }
+      handleASL(arg1, arg2, &CPU::readAbsolute, &CPU::writeAbsolute);
       break;
     case 0x1E:
-    {
-      programCounter += 3;
-      cycle = 7;
-      const byte temp{ readMemory(arg1 + (arg2 << 8) + x) };
-      const byte res{ static_cast<byte>(temp << 1) };
-      writeMemory(arg1 + (arg2 << 8) + x, res);
-      carry = temp >= 128;
-      zero = res == 0;
-      negative = res >= 128;
-    }
+      handleASL(arg1, arg2, &CPU::readAbsoluteXNoCycle, &CPU::writeAbsoluteX);
       break;
 
 
     // LSR
     case 0x4A:
-      programCounter += 1;
-      cycle = 2;
       carry = accumulator & 0b1;
       accumulator >>= 1;
       zero = accumulator == 0;
       negative = accumulator >= 128;
       break;
     case 0x46:
-    {
-      programCounter += 2;
-      cycle = 5;
-      const byte temp{ readZeroPage(arg1) };
-      const byte res{ static_cast<byte>(temp >> 1) };
-      writeZeroPage(arg1, res);
-      carry = temp & 0b1;
-      zero = res == 0;
-      negative = res >= 128;
-    }
+      handleLSR(arg1, arg2, &CPU::readZeroPage, &CPU::writeZeroPage);
       break;
     case 0x56:
-    {
-      programCounter += 2;
-      cycle = 6;
-      const byte temp{ readZeroPageX(arg1) };
-      const byte res{ static_cast<byte>(temp >> 1) };
-      writeZeroPageX(arg1, res);
-      carry = temp & 0b1;
-      zero = res == 0;
-      negative = res >= 128;
-    }
+      handleLSR(arg1, arg2, &CPU::readZeroPageX, &CPU::writeZeroPageX);
       break;
     case 0x4E:
-    {
-      programCounter += 3;
-      cycle = 6;
-      const byte temp{ readAbsolute(arg1, arg2) };
-      const byte res{ static_cast<byte>(temp >> 1) };
-      writeAbsolute(arg1, arg2, res);
-      carry = temp & 0b1;
-      zero = res == 0;
-      negative = res >= 128;
-    }
+      handleLSR(arg1, arg2, &CPU::readAbsolute, &CPU::writeAbsolute);
       break;
     case 0x5E:
-    {
-      programCounter += 3;
-      cycle = 7;
-      const byte temp{ readMemory(arg1 + (arg2 << 8) + x) };
-      const byte res{ static_cast<byte>(temp >> 1) };
-      writeMemory(arg1 + (arg2 << 8) + x, res);
-      carry = temp & 0b1;
-      zero = res == 0;
-      negative = res >= 128;
-    }
+      handleLSR(arg1, arg2, &CPU::readAbsoluteXNoCycle, &CPU::writeAbsoluteX);
       break;
 
 
     // ROL
     case 0x2A:
     {
-      programCounter += 1;
-      cycle = 2;
       const int temp{ accumulator };
       accumulator = (accumulator << 1) + carry;
       carry = temp & 0b1000'0000;
@@ -1237,60 +867,22 @@ void CPU::executeOp(byte op, byte arg1, byte arg2) {
     }
       break;
     case 0x26:
-    {
-      programCounter += 2;
-      cycle = 5;
-      const byte temp{ readZeroPage(arg1) };
-      const byte res{ static_cast<byte>((temp << 1) + carry) };
-      writeZeroPage(arg1, res);
-      carry = temp & 0b1000'0000;
-      zero = res == 0;
-      negative = res >= 128;
-    }
+      handleROL(arg1, arg2, &CPU::readZeroPage, &CPU::writeZeroPage);
       break;
     case 0x36:
-    {
-      programCounter += 2;
-      cycle = 6;
-      const byte temp{ readZeroPageX(arg1) };
-      const byte res{ static_cast<byte>((temp << 1) + carry) };
-      writeZeroPageX(arg1, res);
-      carry = temp & 0b1000'0000;
-      zero = res == 0;
-      negative = res >= 128;
-    }
+      handleROL(arg1, arg2, &CPU::readZeroPageX, &CPU::writeZeroPageX);
       break;
     case 0x2E:
-    {
-      programCounter += 3;
-      cycle = 6;
-      const byte temp{ readAbsolute(arg1, arg2) };
-      const byte res{ static_cast<byte>((temp << 1) + carry) };
-      writeAbsolute(arg1, arg2, res);
-      carry = temp & 0b1000'0000;
-      zero = res == 0;
-      negative = res >= 128;
-    }
+      handleROL(arg1, arg2, &CPU::readAbsolute, &CPU::writeAbsolute);
       break;
     case 0x3E:
-    {
-      programCounter += 3;
-      cycle = 7;
-      const byte temp{ readMemory(arg1 + (arg2 << 8) + x) };
-      const byte res{ static_cast<byte>((temp << 1) + carry) };
-      writeMemory(arg1 + (arg2 << 8) + x, res);
-      carry = temp & 0b1000'0000;
-      zero = res == 0;
-      negative = res >= 128;
-    }
+      handleROL(arg1, arg2, &CPU::readAbsoluteXNoCycle, &CPU::writeAbsoluteX);
       break;
 
 
     // ROR
     case 0x6A:
     {
-      programCounter += 1;
-      cycle = 2;
       const byte temp{ accumulator };
       accumulator = (temp >> 1) + (carry << 7);
       carry = temp & 0b1;
@@ -1299,52 +891,16 @@ void CPU::executeOp(byte op, byte arg1, byte arg2) {
     }
       break;
     case 0x66:
-    {
-      programCounter += 2;
-      cycle = 5;
-      const byte temp{ readZeroPage(arg1) };
-      const byte res{ static_cast<byte>((temp >> 1) + (carry << 7)) };
-      writeZeroPage(arg1, res);
-      carry = temp & 0b1;
-      zero = res == 0;
-      negative = res >= 128;
-    }
+      handleROR(arg1, arg2, &CPU::readZeroPage, &CPU::writeZeroPage);
       break;
     case 0x76:
-    {
-      programCounter += 2;
-      cycle = 6;
-      const byte temp{ readZeroPageX(arg1) };
-      const byte res{ static_cast<byte>((temp >> 1) + (carry << 7)) };
-      writeZeroPageX(arg1, res);
-      carry = temp & 0b1;
-      zero = res == 0;
-      negative = res >= 128;
-    }
+      handleROR(arg1, arg2, &CPU::readZeroPageX, &CPU::writeZeroPageX);
       break;
     case 0x6E:
-    {
-      programCounter += 3;
-      cycle = 6;
-      const byte temp{ readAbsolute(arg1, arg2) };
-      const byte res{ static_cast<byte>((temp >> 1) + (carry << 7)) };
-      writeAbsolute(arg1, arg2, res);
-      carry = temp & 0b1;
-      zero = res == 0;
-      negative = res >= 128;
-    }
+      handleROR(arg1, arg2, &CPU::readAbsolute, &CPU::writeAbsolute);
       break;
     case 0x7E:
-    {
-      programCounter += 3;
-      cycle = 7;
-      const byte temp{ readMemory(arg1 + (arg2 << 8) + x) };
-      const byte res{ static_cast<byte>((temp >> 1) + (carry << 7)) };
-      writeMemory(arg1 + (arg2 << 8) + x, res);
-      carry = temp & 0b1;
-      zero = res == 0;
-      negative = res >= 128;
-    }
+      handleROR(arg1, arg2, &CPU::readAbsoluteXNoCycle, &CPU::writeAbsoluteX);
       break;
 
 
@@ -1355,34 +911,37 @@ void CPU::executeOp(byte op, byte arg1, byte arg2) {
     // JMP
     case 0x4C:
       programCounter = arg1 + (arg2 << 8);
-      cycle = 3;
-      break;
+      return false;
     case 0x6C:
-      programCounter = readMemory(arg1 + (arg2 << 8)) + (readMemory(arg1 + (arg2 << 8) + 1) << 8);
-      cycle = 5;
-      break;
+    {
+      // Need to be same page
+      word addr{ static_cast<word>(arg1 + (arg2 << 8)) };
+      word addr2nd{ static_cast<word>(arg1 + (arg2 << 8) + 1) };
+      if ((addr & 0xF00) != ((addr2nd + 1) & 0xF00))
+        addr2nd = (addr & 0xF00);
+      programCounter = readMemory(addr) + (readMemory(addr2nd) << 8);
+    }
+      return false;
 
 
     // JSR
     case 0x20:
       memory[0x100 + stackPointer] = (programCounter + 2) >> 8;
-      memory[0x100 + stackPointer - 1] = (programCounter + 2);
+      memory[0x100 + static_cast<byte>(stackPointer - 1)] = (programCounter + 2);
       stackPointer -= 2;
       programCounter = arg1 + (arg2 << 8);
-      cycle = 6;
-      break;
+      return false;
 
     // RTS
     case 0x60:
     {
-      const word addr{ static_cast<word>(memory[0x100 + stackPointer + 1] + (memory[0x100 + stackPointer + 2] << 8)) };
-      memory[0x100 + stackPointer + 1] = 0;
-      memory[0x100 + stackPointer + 2] = 0;
+      const word addr{ static_cast<word>(memory[0x100 + static_cast<byte>(stackPointer + 1)] + (memory[0x100 + static_cast<byte>(stackPointer + 2)] << 8)) };
+      memory[0x100 + static_cast<byte>(stackPointer + 1)] = 0;
+      memory[0x100 + static_cast<byte>(stackPointer + 2)] = 0;
       stackPointer += 2;
       programCounter = addr + 1;
-      cycle = 6;
     }
-      break;
+      return false;
 
 
 
@@ -1391,113 +950,49 @@ void CPU::executeOp(byte op, byte arg1, byte arg2) {
     // Branch
     // BCC
     case 0x90:
-      programCounter += 2;
-      cycle = 2;
-      if (!carry) {
-        word initial{ programCounter };
-        programCounter += readRelative(arg1);
-        cycle += 1;
-        if ((initial & 0xF00) != (programCounter & 0xF00))
-          cycle += 1;
-      }
+      handleBranch(arg1, !carry);
       break;
 
 
     // BCS
     case 0xB0:
-      programCounter += 2;
-      cycle = 2;
-      if (carry) {
-        word initial{ programCounter };
-        programCounter += readRelative(arg1);
-        cycle += 1;
-        if ((initial & 0xF00) != (programCounter & 0xF00))
-          cycle += 1;
-      }
+      handleBranch(arg1, carry);
       break;
 
 
     // BEQ
     case 0xF0:
-      programCounter += 2;
-      cycle = 2;
-      if (zero) {
-        word initial{ programCounter };
-        programCounter += readRelative(arg1);
-        cycle += 1;
-        if ((initial & 0xF00) != (programCounter & 0xF00))
-          cycle += 1;
-      }
+      handleBranch(arg1, zero);
       break;
 
 
     // BMI
     case 0x30:
-      programCounter += 2;
-      cycle = 2;
-      if (negative) {
-        word initial{ programCounter };
-        programCounter += readRelative(arg1);
-        cycle += 1;
-        if ((initial & 0xF00) != (programCounter & 0xF00))
-          cycle += 1;
-      }
+      handleBranch(arg1, negative);
       break;
 
 
     // BCS
     case 0xD0:
-      programCounter += 2;
-      cycle = 2;
-      if (!zero) {
-        word initial{ programCounter };
-        programCounter += readRelative(arg1);
-        cycle += 1;
-        if ((initial & 0xF00) != (programCounter & 0xF00))
-          cycle += 1;
-      }
+      handleBranch(arg1, !zero);
       break;
 
 
     // BPL
     case 0x10:
-      programCounter += 2;
-      cycle = 2;
-      if (!negative) {
-        word initial{ programCounter };
-        programCounter += readRelative(arg1);
-        cycle += 1;
-        if ((initial & 0xF00) != (programCounter & 0xF00))
-          cycle += 1;
-      }
+      handleBranch(arg1, !negative);
       break;
 
 
      // BVC
     case 0x50:
-      programCounter += 2;
-      cycle = 2;
-      if (!overflow) {
-        word initial{ programCounter };
-        programCounter += readRelative(arg1);
-        cycle += 1;
-        if ((initial & 0xF00) != (programCounter & 0xF00))
-          cycle += 1;
-      }
+      handleBranch(arg1, !overflow);
       break;
 
 
     // BVS
     case 0x70:
-      programCounter += 2;
-      cycle = 2;
-      if (overflow) {
-        word initial{ programCounter };
-        programCounter += readRelative(arg1);
-        cycle += 1;
-        if ((initial & 0xF00) != (programCounter & 0xF00))
-          cycle += 1;
-      }
+      handleBranch(arg1, overflow);
       break;
 
 
@@ -1507,56 +1002,42 @@ void CPU::executeOp(byte op, byte arg1, byte arg2) {
     // Status Flag
     // CLC
     case 0x18:
-      programCounter += 1;
-      cycle = 2;
       carry = false;
       break;
 
 
     // CLD
     case 0xD8:
-      programCounter += 1;
-      cycle = 2;
       decimal = false;
       break;
 
 
       // CLI
     case 0x58:
-      programCounter += 1;
-      cycle = 2;
       interruptDisable = false;
       break;
 
 
       // CLV
     case 0xB8:
-      programCounter += 1;
-      cycle = 2;
       overflow = false;
       break;
 
 
       // SEC
     case 0x38:
-      programCounter += 1;
-      cycle = 2;
       carry = true;
       break;
 
 
       // SED
     case 0xF8:
-      programCounter += 1;
-      cycle = 2;
       decimal = true;
       break;
 
 
       // SEI
     case 0x78:
-      programCounter += 1;
-      cycle = 2;
       interruptDisable = true;
       break;
 
@@ -1565,14 +1046,37 @@ void CPU::executeOp(byte op, byte arg1, byte arg2) {
 
 
     // Interrupt
+    // BRK
+    case 0x00:
+      breakCommand = true;
+      memory[0x100 + stackPointer] = programCounter >> 8;
+      memory[0x100 + static_cast<byte>(stackPointer - 1)] = programCounter;
+      memory[0x100 + static_cast<byte>(stackPointer - 2)] = convertFlag();
+      memory[0x100 + static_cast<byte>(stackPointer - 2)] |= 0b0001'0000;
+      stackPointer -= 3;
+      return false;
+
+
     // NOP
     case 0xEA:
-      programCounter += 1;
-      cycle = 2;
       break;
 
+
+    // RTI
+    case 0x40:
+      writeFlag(memory[0x100 + static_cast<byte>(stackPointer + 1)]);
+      programCounter = 0;
+      programCounter += memory[0x100 + static_cast<byte>(stackPointer + 2)];
+      programCounter += (memory[0x100 + static_cast<byte>(stackPointer + 3)]) << 8;
+      memory[0x100 + static_cast<byte>(stackPointer + 1)] = 0;
+      memory[0x100 + static_cast<byte>(stackPointer + 2)] = 0;
+      memory[0x100 + static_cast<byte>(stackPointer + 3)] = 0;
+      stackPointer += 3;
+      return false;
     default:
       printf("Unknown instruction encountered: OPCODE: %d, skipping!\n", op);
       break;
   }
+
+  return true;
 }

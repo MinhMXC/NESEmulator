@@ -91,6 +91,20 @@ build CMakeFiles/NESEmulator.dir/src/cpu/addressingMode.cpp.obj: CXX_COMPILER__N
   OBJECT_DIR = CMakeFiles\NESEmulator.dir
   OBJECT_FILE_DIR = CMakeFiles\NESEmulator.dir\src\cpu
 
+build CMakeFiles/NESEmulator.dir/src/input_handler/input_handler.cpp.obj: CXX_COMPILER__NESEmulator_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/input_handler/input_handler.cpp || cmake_object_order_depends_target_NESEmulator
+  DEP_FILE = CMakeFiles\NESEmulator.dir\src\input_handler\input_handler.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/include/SDL2 -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2_image/include/SDL2
+  OBJECT_DIR = CMakeFiles\NESEmulator.dir
+  OBJECT_FILE_DIR = CMakeFiles\NESEmulator.dir\src\input_handler
+
+build CMakeFiles/NESEmulator.dir/src/display/debug_display.cpp.obj: CXX_COMPILER__NESEmulator_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/display/debug_display.cpp || cmake_object_order_depends_target_NESEmulator
+  DEP_FILE = CMakeFiles\NESEmulator.dir\src\display\debug_display.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/include/SDL2 -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2_image/include/SDL2
+  OBJECT_DIR = CMakeFiles\NESEmulator.dir
+  OBJECT_FILE_DIR = CMakeFiles\NESEmulator.dir\src\display
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target NESEmulator
@@ -99,7 +113,7 @@ build CMakeFiles/NESEmulator.dir/src/cpu/addressingMode.cpp.obj: CXX_COMPILER__N
 #############################################
 # Link the executable NESEmulator.exe
 
-build NESEmulator.exe: CXX_EXECUTABLE_LINKER__NESEmulator_Debug CMakeFiles/NESEmulator.dir/src/main.cpp.obj CMakeFiles/NESEmulator.dir/src/ppu/ppu.cpp.obj CMakeFiles/NESEmulator.dir/src/display/display.cpp.obj CMakeFiles/NESEmulator.dir/src/utils.cpp.obj CMakeFiles/NESEmulator.dir/src/cpu/cpu.cpp.obj CMakeFiles/NESEmulator.dir/src/cpu/addressingMode.cpp.obj | C$:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2main.a C$:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2.dll.a C$:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2_image/lib/libSDL2_image.dll.a
+build NESEmulator.exe: CXX_EXECUTABLE_LINKER__NESEmulator_Debug CMakeFiles/NESEmulator.dir/src/main.cpp.obj CMakeFiles/NESEmulator.dir/src/ppu/ppu.cpp.obj CMakeFiles/NESEmulator.dir/src/display/display.cpp.obj CMakeFiles/NESEmulator.dir/src/utils.cpp.obj CMakeFiles/NESEmulator.dir/src/cpu/cpu.cpp.obj CMakeFiles/NESEmulator.dir/src/cpu/addressingMode.cpp.obj CMakeFiles/NESEmulator.dir/src/input_handler/input_handler.cpp.obj CMakeFiles/NESEmulator.dir/src/display/debug_display.cpp.obj | C$:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2main.a C$:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2.dll.a C$:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2_image/lib/libSDL2_image.dll.a
   FLAGS = -g
   LINK_LIBRARIES = -lmingw32  -mwindows  C:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2main.a  C:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2.dll.a  C:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2_image/lib/libSDL2_image.dll.a  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\NESEmulator.dir
@@ -214,6 +228,27 @@ build CMakeFiles/LoadStoreTest.dir/src/test/cpu/loadStoreTest.cpp.obj: CXX_COMPI
   OBJECT_DIR = CMakeFiles\LoadStoreTest.dir
   OBJECT_FILE_DIR = CMakeFiles\LoadStoreTest.dir\src\test\cpu
 
+build CMakeFiles/LoadStoreTest.dir/src/ppu/ppu.cpp.obj: CXX_COMPILER__LoadStoreTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/ppu/ppu.cpp || cmake_object_order_depends_target_LoadStoreTest
+  DEP_FILE = CMakeFiles\LoadStoreTest.dir\src\ppu\ppu.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/include/SDL2 -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2_image/include/SDL2 -isystem "C:/Program Files (x86)/Catch2/include"
+  OBJECT_DIR = CMakeFiles\LoadStoreTest.dir
+  OBJECT_FILE_DIR = CMakeFiles\LoadStoreTest.dir\src\ppu
+
+build CMakeFiles/LoadStoreTest.dir/src/display/display.cpp.obj: CXX_COMPILER__LoadStoreTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/display/display.cpp || cmake_object_order_depends_target_LoadStoreTest
+  DEP_FILE = CMakeFiles\LoadStoreTest.dir\src\display\display.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/include/SDL2 -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2_image/include/SDL2 -isystem "C:/Program Files (x86)/Catch2/include"
+  OBJECT_DIR = CMakeFiles\LoadStoreTest.dir
+  OBJECT_FILE_DIR = CMakeFiles\LoadStoreTest.dir\src\display
+
+build CMakeFiles/LoadStoreTest.dir/src/utils.cpp.obj: CXX_COMPILER__LoadStoreTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/utils.cpp || cmake_object_order_depends_target_LoadStoreTest
+  DEP_FILE = CMakeFiles\LoadStoreTest.dir\src\utils.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/include/SDL2 -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2_image/include/SDL2 -isystem "C:/Program Files (x86)/Catch2/include"
+  OBJECT_DIR = CMakeFiles\LoadStoreTest.dir
+  OBJECT_FILE_DIR = CMakeFiles\LoadStoreTest.dir\src
+
 build CMakeFiles/LoadStoreTest.dir/src/cpu/cpu.cpp.obj: CXX_COMPILER__LoadStoreTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/cpu/cpu.cpp || cmake_object_order_depends_target_LoadStoreTest
   DEP_FILE = CMakeFiles\LoadStoreTest.dir\src\cpu\cpu.cpp.obj.d
   FLAGS = -g -fdiagnostics-color=always
@@ -236,9 +271,9 @@ build CMakeFiles/LoadStoreTest.dir/src/cpu/addressingMode.cpp.obj: CXX_COMPILER_
 #############################################
 # Link the executable LoadStoreTest.exe
 
-build LoadStoreTest.exe: CXX_EXECUTABLE_LINKER__LoadStoreTest_Debug CMakeFiles/LoadStoreTest.dir/src/test/cpu/loadStoreTest.cpp.obj CMakeFiles/LoadStoreTest.dir/src/cpu/cpu.cpp.obj CMakeFiles/LoadStoreTest.dir/src/cpu/addressingMode.cpp.obj | C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2Main.a C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2.a
+build LoadStoreTest.exe: CXX_EXECUTABLE_LINKER__LoadStoreTest_Debug CMakeFiles/LoadStoreTest.dir/src/test/cpu/loadStoreTest.cpp.obj CMakeFiles/LoadStoreTest.dir/src/ppu/ppu.cpp.obj CMakeFiles/LoadStoreTest.dir/src/display/display.cpp.obj CMakeFiles/LoadStoreTest.dir/src/utils.cpp.obj CMakeFiles/LoadStoreTest.dir/src/cpu/cpu.cpp.obj CMakeFiles/LoadStoreTest.dir/src/cpu/addressingMode.cpp.obj | C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2Main.a C$:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2main.a C$:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2.dll.a C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2.a
   FLAGS = -g
-  LINK_LIBRARIES = "C:/Program Files (x86)/Catch2/lib/libCatch2Main.a"  "C:/Program Files (x86)/Catch2/lib/libCatch2.a"  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
+  LINK_LIBRARIES = "C:/Program Files (x86)/Catch2/lib/libCatch2Main.a"  -lmingw32  -mwindows  C:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2main.a  C:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2.dll.a  "C:/Program Files (x86)/Catch2/lib/libCatch2.a"  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\LoadStoreTest.dir
   POST_BUILD = cd .
   PRE_LINK = cd .
@@ -262,6 +297,27 @@ build CMakeFiles/RegisterTransferTest.dir/src/test/cpu/registerTransferTest.cpp.
   OBJECT_DIR = CMakeFiles\RegisterTransferTest.dir
   OBJECT_FILE_DIR = CMakeFiles\RegisterTransferTest.dir\src\test\cpu
 
+build CMakeFiles/RegisterTransferTest.dir/src/ppu/ppu.cpp.obj: CXX_COMPILER__RegisterTransferTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/ppu/ppu.cpp || cmake_object_order_depends_target_RegisterTransferTest
+  DEP_FILE = CMakeFiles\RegisterTransferTest.dir\src\ppu\ppu.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/include/SDL2 -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2_image/include/SDL2 -isystem "C:/Program Files (x86)/Catch2/include"
+  OBJECT_DIR = CMakeFiles\RegisterTransferTest.dir
+  OBJECT_FILE_DIR = CMakeFiles\RegisterTransferTest.dir\src\ppu
+
+build CMakeFiles/RegisterTransferTest.dir/src/display/display.cpp.obj: CXX_COMPILER__RegisterTransferTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/display/display.cpp || cmake_object_order_depends_target_RegisterTransferTest
+  DEP_FILE = CMakeFiles\RegisterTransferTest.dir\src\display\display.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/include/SDL2 -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2_image/include/SDL2 -isystem "C:/Program Files (x86)/Catch2/include"
+  OBJECT_DIR = CMakeFiles\RegisterTransferTest.dir
+  OBJECT_FILE_DIR = CMakeFiles\RegisterTransferTest.dir\src\display
+
+build CMakeFiles/RegisterTransferTest.dir/src/utils.cpp.obj: CXX_COMPILER__RegisterTransferTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/utils.cpp || cmake_object_order_depends_target_RegisterTransferTest
+  DEP_FILE = CMakeFiles\RegisterTransferTest.dir\src\utils.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/include/SDL2 -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2_image/include/SDL2 -isystem "C:/Program Files (x86)/Catch2/include"
+  OBJECT_DIR = CMakeFiles\RegisterTransferTest.dir
+  OBJECT_FILE_DIR = CMakeFiles\RegisterTransferTest.dir\src
+
 build CMakeFiles/RegisterTransferTest.dir/src/cpu/cpu.cpp.obj: CXX_COMPILER__RegisterTransferTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/cpu/cpu.cpp || cmake_object_order_depends_target_RegisterTransferTest
   DEP_FILE = CMakeFiles\RegisterTransferTest.dir\src\cpu\cpu.cpp.obj.d
   FLAGS = -g -fdiagnostics-color=always
@@ -284,9 +340,9 @@ build CMakeFiles/RegisterTransferTest.dir/src/cpu/addressingMode.cpp.obj: CXX_CO
 #############################################
 # Link the executable RegisterTransferTest.exe
 
-build RegisterTransferTest.exe: CXX_EXECUTABLE_LINKER__RegisterTransferTest_Debug CMakeFiles/RegisterTransferTest.dir/src/test/cpu/registerTransferTest.cpp.obj CMakeFiles/RegisterTransferTest.dir/src/cpu/cpu.cpp.obj CMakeFiles/RegisterTransferTest.dir/src/cpu/addressingMode.cpp.obj | C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2Main.a C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2.a
+build RegisterTransferTest.exe: CXX_EXECUTABLE_LINKER__RegisterTransferTest_Debug CMakeFiles/RegisterTransferTest.dir/src/test/cpu/registerTransferTest.cpp.obj CMakeFiles/RegisterTransferTest.dir/src/ppu/ppu.cpp.obj CMakeFiles/RegisterTransferTest.dir/src/display/display.cpp.obj CMakeFiles/RegisterTransferTest.dir/src/utils.cpp.obj CMakeFiles/RegisterTransferTest.dir/src/cpu/cpu.cpp.obj CMakeFiles/RegisterTransferTest.dir/src/cpu/addressingMode.cpp.obj | C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2Main.a C$:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2main.a C$:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2.dll.a C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2.a
   FLAGS = -g
-  LINK_LIBRARIES = "C:/Program Files (x86)/Catch2/lib/libCatch2Main.a"  "C:/Program Files (x86)/Catch2/lib/libCatch2.a"  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
+  LINK_LIBRARIES = "C:/Program Files (x86)/Catch2/lib/libCatch2Main.a"  -lmingw32  -mwindows  C:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2main.a  C:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2.dll.a  "C:/Program Files (x86)/Catch2/lib/libCatch2.a"  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\RegisterTransferTest.dir
   POST_BUILD = cd .
   PRE_LINK = cd .
@@ -310,6 +366,27 @@ build CMakeFiles/StackOperationTest.dir/src/test/cpu/stackOperationTest.cpp.obj:
   OBJECT_DIR = CMakeFiles\StackOperationTest.dir
   OBJECT_FILE_DIR = CMakeFiles\StackOperationTest.dir\src\test\cpu
 
+build CMakeFiles/StackOperationTest.dir/src/ppu/ppu.cpp.obj: CXX_COMPILER__StackOperationTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/ppu/ppu.cpp || cmake_object_order_depends_target_StackOperationTest
+  DEP_FILE = CMakeFiles\StackOperationTest.dir\src\ppu\ppu.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/include/SDL2 -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2_image/include/SDL2 -isystem "C:/Program Files (x86)/Catch2/include"
+  OBJECT_DIR = CMakeFiles\StackOperationTest.dir
+  OBJECT_FILE_DIR = CMakeFiles\StackOperationTest.dir\src\ppu
+
+build CMakeFiles/StackOperationTest.dir/src/display/display.cpp.obj: CXX_COMPILER__StackOperationTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/display/display.cpp || cmake_object_order_depends_target_StackOperationTest
+  DEP_FILE = CMakeFiles\StackOperationTest.dir\src\display\display.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/include/SDL2 -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2_image/include/SDL2 -isystem "C:/Program Files (x86)/Catch2/include"
+  OBJECT_DIR = CMakeFiles\StackOperationTest.dir
+  OBJECT_FILE_DIR = CMakeFiles\StackOperationTest.dir\src\display
+
+build CMakeFiles/StackOperationTest.dir/src/utils.cpp.obj: CXX_COMPILER__StackOperationTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/utils.cpp || cmake_object_order_depends_target_StackOperationTest
+  DEP_FILE = CMakeFiles\StackOperationTest.dir\src\utils.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/include/SDL2 -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2_image/include/SDL2 -isystem "C:/Program Files (x86)/Catch2/include"
+  OBJECT_DIR = CMakeFiles\StackOperationTest.dir
+  OBJECT_FILE_DIR = CMakeFiles\StackOperationTest.dir\src
+
 build CMakeFiles/StackOperationTest.dir/src/cpu/cpu.cpp.obj: CXX_COMPILER__StackOperationTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/cpu/cpu.cpp || cmake_object_order_depends_target_StackOperationTest
   DEP_FILE = CMakeFiles\StackOperationTest.dir\src\cpu\cpu.cpp.obj.d
   FLAGS = -g -fdiagnostics-color=always
@@ -332,9 +409,9 @@ build CMakeFiles/StackOperationTest.dir/src/cpu/addressingMode.cpp.obj: CXX_COMP
 #############################################
 # Link the executable StackOperationTest.exe
 
-build StackOperationTest.exe: CXX_EXECUTABLE_LINKER__StackOperationTest_Debug CMakeFiles/StackOperationTest.dir/src/test/cpu/stackOperationTest.cpp.obj CMakeFiles/StackOperationTest.dir/src/cpu/cpu.cpp.obj CMakeFiles/StackOperationTest.dir/src/cpu/addressingMode.cpp.obj | C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2Main.a C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2.a
+build StackOperationTest.exe: CXX_EXECUTABLE_LINKER__StackOperationTest_Debug CMakeFiles/StackOperationTest.dir/src/test/cpu/stackOperationTest.cpp.obj CMakeFiles/StackOperationTest.dir/src/ppu/ppu.cpp.obj CMakeFiles/StackOperationTest.dir/src/display/display.cpp.obj CMakeFiles/StackOperationTest.dir/src/utils.cpp.obj CMakeFiles/StackOperationTest.dir/src/cpu/cpu.cpp.obj CMakeFiles/StackOperationTest.dir/src/cpu/addressingMode.cpp.obj | C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2Main.a C$:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2main.a C$:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2.dll.a C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2.a
   FLAGS = -g
-  LINK_LIBRARIES = "C:/Program Files (x86)/Catch2/lib/libCatch2Main.a"  "C:/Program Files (x86)/Catch2/lib/libCatch2.a"  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
+  LINK_LIBRARIES = "C:/Program Files (x86)/Catch2/lib/libCatch2Main.a"  -lmingw32  -mwindows  C:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2main.a  C:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2.dll.a  "C:/Program Files (x86)/Catch2/lib/libCatch2.a"  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\StackOperationTest.dir
   POST_BUILD = cd .
   PRE_LINK = cd .
@@ -358,6 +435,27 @@ build CMakeFiles/LogicalTest.dir/src/test/cpu/logicalTest.cpp.obj: CXX_COMPILER_
   OBJECT_DIR = CMakeFiles\LogicalTest.dir
   OBJECT_FILE_DIR = CMakeFiles\LogicalTest.dir\src\test\cpu
 
+build CMakeFiles/LogicalTest.dir/src/ppu/ppu.cpp.obj: CXX_COMPILER__LogicalTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/ppu/ppu.cpp || cmake_object_order_depends_target_LogicalTest
+  DEP_FILE = CMakeFiles\LogicalTest.dir\src\ppu\ppu.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/include/SDL2 -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2_image/include/SDL2 -isystem "C:/Program Files (x86)/Catch2/include"
+  OBJECT_DIR = CMakeFiles\LogicalTest.dir
+  OBJECT_FILE_DIR = CMakeFiles\LogicalTest.dir\src\ppu
+
+build CMakeFiles/LogicalTest.dir/src/display/display.cpp.obj: CXX_COMPILER__LogicalTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/display/display.cpp || cmake_object_order_depends_target_LogicalTest
+  DEP_FILE = CMakeFiles\LogicalTest.dir\src\display\display.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/include/SDL2 -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2_image/include/SDL2 -isystem "C:/Program Files (x86)/Catch2/include"
+  OBJECT_DIR = CMakeFiles\LogicalTest.dir
+  OBJECT_FILE_DIR = CMakeFiles\LogicalTest.dir\src\display
+
+build CMakeFiles/LogicalTest.dir/src/utils.cpp.obj: CXX_COMPILER__LogicalTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/utils.cpp || cmake_object_order_depends_target_LogicalTest
+  DEP_FILE = CMakeFiles\LogicalTest.dir\src\utils.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/include/SDL2 -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2_image/include/SDL2 -isystem "C:/Program Files (x86)/Catch2/include"
+  OBJECT_DIR = CMakeFiles\LogicalTest.dir
+  OBJECT_FILE_DIR = CMakeFiles\LogicalTest.dir\src
+
 build CMakeFiles/LogicalTest.dir/src/cpu/cpu.cpp.obj: CXX_COMPILER__LogicalTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/cpu/cpu.cpp || cmake_object_order_depends_target_LogicalTest
   DEP_FILE = CMakeFiles\LogicalTest.dir\src\cpu\cpu.cpp.obj.d
   FLAGS = -g -fdiagnostics-color=always
@@ -380,9 +478,9 @@ build CMakeFiles/LogicalTest.dir/src/cpu/addressingMode.cpp.obj: CXX_COMPILER__L
 #############################################
 # Link the executable LogicalTest.exe
 
-build LogicalTest.exe: CXX_EXECUTABLE_LINKER__LogicalTest_Debug CMakeFiles/LogicalTest.dir/src/test/cpu/logicalTest.cpp.obj CMakeFiles/LogicalTest.dir/src/cpu/cpu.cpp.obj CMakeFiles/LogicalTest.dir/src/cpu/addressingMode.cpp.obj | C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2Main.a C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2.a
+build LogicalTest.exe: CXX_EXECUTABLE_LINKER__LogicalTest_Debug CMakeFiles/LogicalTest.dir/src/test/cpu/logicalTest.cpp.obj CMakeFiles/LogicalTest.dir/src/ppu/ppu.cpp.obj CMakeFiles/LogicalTest.dir/src/display/display.cpp.obj CMakeFiles/LogicalTest.dir/src/utils.cpp.obj CMakeFiles/LogicalTest.dir/src/cpu/cpu.cpp.obj CMakeFiles/LogicalTest.dir/src/cpu/addressingMode.cpp.obj | C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2Main.a C$:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2main.a C$:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2.dll.a C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2.a
   FLAGS = -g
-  LINK_LIBRARIES = "C:/Program Files (x86)/Catch2/lib/libCatch2Main.a"  "C:/Program Files (x86)/Catch2/lib/libCatch2.a"  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
+  LINK_LIBRARIES = "C:/Program Files (x86)/Catch2/lib/libCatch2Main.a"  -lmingw32  -mwindows  C:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2main.a  C:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2.dll.a  "C:/Program Files (x86)/Catch2/lib/libCatch2.a"  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\LogicalTest.dir
   POST_BUILD = cd .
   PRE_LINK = cd .
@@ -406,6 +504,27 @@ build CMakeFiles/ArithmeticTest.dir/src/test/cpu/arithmeticTest.cpp.obj: CXX_COM
   OBJECT_DIR = CMakeFiles\ArithmeticTest.dir
   OBJECT_FILE_DIR = CMakeFiles\ArithmeticTest.dir\src\test\cpu
 
+build CMakeFiles/ArithmeticTest.dir/src/ppu/ppu.cpp.obj: CXX_COMPILER__ArithmeticTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/ppu/ppu.cpp || cmake_object_order_depends_target_ArithmeticTest
+  DEP_FILE = CMakeFiles\ArithmeticTest.dir\src\ppu\ppu.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/include/SDL2 -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2_image/include/SDL2 -isystem "C:/Program Files (x86)/Catch2/include"
+  OBJECT_DIR = CMakeFiles\ArithmeticTest.dir
+  OBJECT_FILE_DIR = CMakeFiles\ArithmeticTest.dir\src\ppu
+
+build CMakeFiles/ArithmeticTest.dir/src/display/display.cpp.obj: CXX_COMPILER__ArithmeticTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/display/display.cpp || cmake_object_order_depends_target_ArithmeticTest
+  DEP_FILE = CMakeFiles\ArithmeticTest.dir\src\display\display.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/include/SDL2 -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2_image/include/SDL2 -isystem "C:/Program Files (x86)/Catch2/include"
+  OBJECT_DIR = CMakeFiles\ArithmeticTest.dir
+  OBJECT_FILE_DIR = CMakeFiles\ArithmeticTest.dir\src\display
+
+build CMakeFiles/ArithmeticTest.dir/src/utils.cpp.obj: CXX_COMPILER__ArithmeticTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/utils.cpp || cmake_object_order_depends_target_ArithmeticTest
+  DEP_FILE = CMakeFiles\ArithmeticTest.dir\src\utils.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/include/SDL2 -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2_image/include/SDL2 -isystem "C:/Program Files (x86)/Catch2/include"
+  OBJECT_DIR = CMakeFiles\ArithmeticTest.dir
+  OBJECT_FILE_DIR = CMakeFiles\ArithmeticTest.dir\src
+
 build CMakeFiles/ArithmeticTest.dir/src/cpu/cpu.cpp.obj: CXX_COMPILER__ArithmeticTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/cpu/cpu.cpp || cmake_object_order_depends_target_ArithmeticTest
   DEP_FILE = CMakeFiles\ArithmeticTest.dir\src\cpu\cpu.cpp.obj.d
   FLAGS = -g -fdiagnostics-color=always
@@ -428,9 +547,9 @@ build CMakeFiles/ArithmeticTest.dir/src/cpu/addressingMode.cpp.obj: CXX_COMPILER
 #############################################
 # Link the executable ArithmeticTest.exe
 
-build ArithmeticTest.exe: CXX_EXECUTABLE_LINKER__ArithmeticTest_Debug CMakeFiles/ArithmeticTest.dir/src/test/cpu/arithmeticTest.cpp.obj CMakeFiles/ArithmeticTest.dir/src/cpu/cpu.cpp.obj CMakeFiles/ArithmeticTest.dir/src/cpu/addressingMode.cpp.obj | C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2Main.a C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2.a
+build ArithmeticTest.exe: CXX_EXECUTABLE_LINKER__ArithmeticTest_Debug CMakeFiles/ArithmeticTest.dir/src/test/cpu/arithmeticTest.cpp.obj CMakeFiles/ArithmeticTest.dir/src/ppu/ppu.cpp.obj CMakeFiles/ArithmeticTest.dir/src/display/display.cpp.obj CMakeFiles/ArithmeticTest.dir/src/utils.cpp.obj CMakeFiles/ArithmeticTest.dir/src/cpu/cpu.cpp.obj CMakeFiles/ArithmeticTest.dir/src/cpu/addressingMode.cpp.obj | C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2Main.a C$:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2main.a C$:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2.dll.a C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2.a
   FLAGS = -g
-  LINK_LIBRARIES = "C:/Program Files (x86)/Catch2/lib/libCatch2Main.a"  "C:/Program Files (x86)/Catch2/lib/libCatch2.a"  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
+  LINK_LIBRARIES = "C:/Program Files (x86)/Catch2/lib/libCatch2Main.a"  -lmingw32  -mwindows  C:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2main.a  C:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2.dll.a  "C:/Program Files (x86)/Catch2/lib/libCatch2.a"  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\ArithmeticTest.dir
   POST_BUILD = cd .
   PRE_LINK = cd .
@@ -454,6 +573,27 @@ build CMakeFiles/IncrementDecrementTest.dir/src/test/cpu/incrementDecrementTest.
   OBJECT_DIR = CMakeFiles\IncrementDecrementTest.dir
   OBJECT_FILE_DIR = CMakeFiles\IncrementDecrementTest.dir\src\test\cpu
 
+build CMakeFiles/IncrementDecrementTest.dir/src/ppu/ppu.cpp.obj: CXX_COMPILER__IncrementDecrementTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/ppu/ppu.cpp || cmake_object_order_depends_target_IncrementDecrementTest
+  DEP_FILE = CMakeFiles\IncrementDecrementTest.dir\src\ppu\ppu.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/include/SDL2 -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2_image/include/SDL2 -isystem "C:/Program Files (x86)/Catch2/include"
+  OBJECT_DIR = CMakeFiles\IncrementDecrementTest.dir
+  OBJECT_FILE_DIR = CMakeFiles\IncrementDecrementTest.dir\src\ppu
+
+build CMakeFiles/IncrementDecrementTest.dir/src/display/display.cpp.obj: CXX_COMPILER__IncrementDecrementTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/display/display.cpp || cmake_object_order_depends_target_IncrementDecrementTest
+  DEP_FILE = CMakeFiles\IncrementDecrementTest.dir\src\display\display.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/include/SDL2 -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2_image/include/SDL2 -isystem "C:/Program Files (x86)/Catch2/include"
+  OBJECT_DIR = CMakeFiles\IncrementDecrementTest.dir
+  OBJECT_FILE_DIR = CMakeFiles\IncrementDecrementTest.dir\src\display
+
+build CMakeFiles/IncrementDecrementTest.dir/src/utils.cpp.obj: CXX_COMPILER__IncrementDecrementTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/utils.cpp || cmake_object_order_depends_target_IncrementDecrementTest
+  DEP_FILE = CMakeFiles\IncrementDecrementTest.dir\src\utils.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/include/SDL2 -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2_image/include/SDL2 -isystem "C:/Program Files (x86)/Catch2/include"
+  OBJECT_DIR = CMakeFiles\IncrementDecrementTest.dir
+  OBJECT_FILE_DIR = CMakeFiles\IncrementDecrementTest.dir\src
+
 build CMakeFiles/IncrementDecrementTest.dir/src/cpu/cpu.cpp.obj: CXX_COMPILER__IncrementDecrementTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/cpu/cpu.cpp || cmake_object_order_depends_target_IncrementDecrementTest
   DEP_FILE = CMakeFiles\IncrementDecrementTest.dir\src\cpu\cpu.cpp.obj.d
   FLAGS = -g -fdiagnostics-color=always
@@ -476,9 +616,9 @@ build CMakeFiles/IncrementDecrementTest.dir/src/cpu/addressingMode.cpp.obj: CXX_
 #############################################
 # Link the executable IncrementDecrementTest.exe
 
-build IncrementDecrementTest.exe: CXX_EXECUTABLE_LINKER__IncrementDecrementTest_Debug CMakeFiles/IncrementDecrementTest.dir/src/test/cpu/incrementDecrementTest.cpp.obj CMakeFiles/IncrementDecrementTest.dir/src/cpu/cpu.cpp.obj CMakeFiles/IncrementDecrementTest.dir/src/cpu/addressingMode.cpp.obj | C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2Main.a C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2.a
+build IncrementDecrementTest.exe: CXX_EXECUTABLE_LINKER__IncrementDecrementTest_Debug CMakeFiles/IncrementDecrementTest.dir/src/test/cpu/incrementDecrementTest.cpp.obj CMakeFiles/IncrementDecrementTest.dir/src/ppu/ppu.cpp.obj CMakeFiles/IncrementDecrementTest.dir/src/display/display.cpp.obj CMakeFiles/IncrementDecrementTest.dir/src/utils.cpp.obj CMakeFiles/IncrementDecrementTest.dir/src/cpu/cpu.cpp.obj CMakeFiles/IncrementDecrementTest.dir/src/cpu/addressingMode.cpp.obj | C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2Main.a C$:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2main.a C$:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2.dll.a C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2.a
   FLAGS = -g
-  LINK_LIBRARIES = "C:/Program Files (x86)/Catch2/lib/libCatch2Main.a"  "C:/Program Files (x86)/Catch2/lib/libCatch2.a"  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
+  LINK_LIBRARIES = "C:/Program Files (x86)/Catch2/lib/libCatch2Main.a"  -lmingw32  -mwindows  C:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2main.a  C:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2.dll.a  "C:/Program Files (x86)/Catch2/lib/libCatch2.a"  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\IncrementDecrementTest.dir
   POST_BUILD = cd .
   PRE_LINK = cd .
@@ -502,6 +642,27 @@ build CMakeFiles/ShiftTest.dir/src/test/cpu/shiftTest.cpp.obj: CXX_COMPILER__Shi
   OBJECT_DIR = CMakeFiles\ShiftTest.dir
   OBJECT_FILE_DIR = CMakeFiles\ShiftTest.dir\src\test\cpu
 
+build CMakeFiles/ShiftTest.dir/src/ppu/ppu.cpp.obj: CXX_COMPILER__ShiftTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/ppu/ppu.cpp || cmake_object_order_depends_target_ShiftTest
+  DEP_FILE = CMakeFiles\ShiftTest.dir\src\ppu\ppu.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/include/SDL2 -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2_image/include/SDL2 -isystem "C:/Program Files (x86)/Catch2/include"
+  OBJECT_DIR = CMakeFiles\ShiftTest.dir
+  OBJECT_FILE_DIR = CMakeFiles\ShiftTest.dir\src\ppu
+
+build CMakeFiles/ShiftTest.dir/src/display/display.cpp.obj: CXX_COMPILER__ShiftTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/display/display.cpp || cmake_object_order_depends_target_ShiftTest
+  DEP_FILE = CMakeFiles\ShiftTest.dir\src\display\display.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/include/SDL2 -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2_image/include/SDL2 -isystem "C:/Program Files (x86)/Catch2/include"
+  OBJECT_DIR = CMakeFiles\ShiftTest.dir
+  OBJECT_FILE_DIR = CMakeFiles\ShiftTest.dir\src\display
+
+build CMakeFiles/ShiftTest.dir/src/utils.cpp.obj: CXX_COMPILER__ShiftTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/utils.cpp || cmake_object_order_depends_target_ShiftTest
+  DEP_FILE = CMakeFiles\ShiftTest.dir\src\utils.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/include/SDL2 -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2_image/include/SDL2 -isystem "C:/Program Files (x86)/Catch2/include"
+  OBJECT_DIR = CMakeFiles\ShiftTest.dir
+  OBJECT_FILE_DIR = CMakeFiles\ShiftTest.dir\src
+
 build CMakeFiles/ShiftTest.dir/src/cpu/cpu.cpp.obj: CXX_COMPILER__ShiftTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/cpu/cpu.cpp || cmake_object_order_depends_target_ShiftTest
   DEP_FILE = CMakeFiles\ShiftTest.dir\src\cpu\cpu.cpp.obj.d
   FLAGS = -g -fdiagnostics-color=always
@@ -524,9 +685,9 @@ build CMakeFiles/ShiftTest.dir/src/cpu/addressingMode.cpp.obj: CXX_COMPILER__Shi
 #############################################
 # Link the executable ShiftTest.exe
 
-build ShiftTest.exe: CXX_EXECUTABLE_LINKER__ShiftTest_Debug CMakeFiles/ShiftTest.dir/src/test/cpu/shiftTest.cpp.obj CMakeFiles/ShiftTest.dir/src/cpu/cpu.cpp.obj CMakeFiles/ShiftTest.dir/src/cpu/addressingMode.cpp.obj | C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2Main.a C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2.a
+build ShiftTest.exe: CXX_EXECUTABLE_LINKER__ShiftTest_Debug CMakeFiles/ShiftTest.dir/src/test/cpu/shiftTest.cpp.obj CMakeFiles/ShiftTest.dir/src/ppu/ppu.cpp.obj CMakeFiles/ShiftTest.dir/src/display/display.cpp.obj CMakeFiles/ShiftTest.dir/src/utils.cpp.obj CMakeFiles/ShiftTest.dir/src/cpu/cpu.cpp.obj CMakeFiles/ShiftTest.dir/src/cpu/addressingMode.cpp.obj | C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2Main.a C$:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2main.a C$:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2.dll.a C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2.a
   FLAGS = -g
-  LINK_LIBRARIES = "C:/Program Files (x86)/Catch2/lib/libCatch2Main.a"  "C:/Program Files (x86)/Catch2/lib/libCatch2.a"  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
+  LINK_LIBRARIES = "C:/Program Files (x86)/Catch2/lib/libCatch2Main.a"  -lmingw32  -mwindows  C:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2main.a  C:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2.dll.a  "C:/Program Files (x86)/Catch2/lib/libCatch2.a"  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\ShiftTest.dir
   POST_BUILD = cd .
   PRE_LINK = cd .
@@ -550,6 +711,27 @@ build CMakeFiles/JumpCallTest.dir/src/test/cpu/jumpCallTest.cpp.obj: CXX_COMPILE
   OBJECT_DIR = CMakeFiles\JumpCallTest.dir
   OBJECT_FILE_DIR = CMakeFiles\JumpCallTest.dir\src\test\cpu
 
+build CMakeFiles/JumpCallTest.dir/src/ppu/ppu.cpp.obj: CXX_COMPILER__JumpCallTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/ppu/ppu.cpp || cmake_object_order_depends_target_JumpCallTest
+  DEP_FILE = CMakeFiles\JumpCallTest.dir\src\ppu\ppu.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/include/SDL2 -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2_image/include/SDL2 -isystem "C:/Program Files (x86)/Catch2/include"
+  OBJECT_DIR = CMakeFiles\JumpCallTest.dir
+  OBJECT_FILE_DIR = CMakeFiles\JumpCallTest.dir\src\ppu
+
+build CMakeFiles/JumpCallTest.dir/src/display/display.cpp.obj: CXX_COMPILER__JumpCallTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/display/display.cpp || cmake_object_order_depends_target_JumpCallTest
+  DEP_FILE = CMakeFiles\JumpCallTest.dir\src\display\display.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/include/SDL2 -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2_image/include/SDL2 -isystem "C:/Program Files (x86)/Catch2/include"
+  OBJECT_DIR = CMakeFiles\JumpCallTest.dir
+  OBJECT_FILE_DIR = CMakeFiles\JumpCallTest.dir\src\display
+
+build CMakeFiles/JumpCallTest.dir/src/utils.cpp.obj: CXX_COMPILER__JumpCallTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/utils.cpp || cmake_object_order_depends_target_JumpCallTest
+  DEP_FILE = CMakeFiles\JumpCallTest.dir\src\utils.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/include/SDL2 -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2_image/include/SDL2 -isystem "C:/Program Files (x86)/Catch2/include"
+  OBJECT_DIR = CMakeFiles\JumpCallTest.dir
+  OBJECT_FILE_DIR = CMakeFiles\JumpCallTest.dir\src
+
 build CMakeFiles/JumpCallTest.dir/src/cpu/cpu.cpp.obj: CXX_COMPILER__JumpCallTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/cpu/cpu.cpp || cmake_object_order_depends_target_JumpCallTest
   DEP_FILE = CMakeFiles\JumpCallTest.dir\src\cpu\cpu.cpp.obj.d
   FLAGS = -g -fdiagnostics-color=always
@@ -572,9 +754,9 @@ build CMakeFiles/JumpCallTest.dir/src/cpu/addressingMode.cpp.obj: CXX_COMPILER__
 #############################################
 # Link the executable JumpCallTest.exe
 
-build JumpCallTest.exe: CXX_EXECUTABLE_LINKER__JumpCallTest_Debug CMakeFiles/JumpCallTest.dir/src/test/cpu/jumpCallTest.cpp.obj CMakeFiles/JumpCallTest.dir/src/cpu/cpu.cpp.obj CMakeFiles/JumpCallTest.dir/src/cpu/addressingMode.cpp.obj | C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2Main.a C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2.a
+build JumpCallTest.exe: CXX_EXECUTABLE_LINKER__JumpCallTest_Debug CMakeFiles/JumpCallTest.dir/src/test/cpu/jumpCallTest.cpp.obj CMakeFiles/JumpCallTest.dir/src/ppu/ppu.cpp.obj CMakeFiles/JumpCallTest.dir/src/display/display.cpp.obj CMakeFiles/JumpCallTest.dir/src/utils.cpp.obj CMakeFiles/JumpCallTest.dir/src/cpu/cpu.cpp.obj CMakeFiles/JumpCallTest.dir/src/cpu/addressingMode.cpp.obj | C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2Main.a C$:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2main.a C$:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2.dll.a C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2.a
   FLAGS = -g
-  LINK_LIBRARIES = "C:/Program Files (x86)/Catch2/lib/libCatch2Main.a"  "C:/Program Files (x86)/Catch2/lib/libCatch2.a"  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
+  LINK_LIBRARIES = "C:/Program Files (x86)/Catch2/lib/libCatch2Main.a"  -lmingw32  -mwindows  C:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2main.a  C:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2.dll.a  "C:/Program Files (x86)/Catch2/lib/libCatch2.a"  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\JumpCallTest.dir
   POST_BUILD = cd .
   PRE_LINK = cd .
@@ -598,6 +780,27 @@ build CMakeFiles/BranchTest.dir/src/test/cpu/branchTest.cpp.obj: CXX_COMPILER__B
   OBJECT_DIR = CMakeFiles\BranchTest.dir
   OBJECT_FILE_DIR = CMakeFiles\BranchTest.dir\src\test\cpu
 
+build CMakeFiles/BranchTest.dir/src/ppu/ppu.cpp.obj: CXX_COMPILER__BranchTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/ppu/ppu.cpp || cmake_object_order_depends_target_BranchTest
+  DEP_FILE = CMakeFiles\BranchTest.dir\src\ppu\ppu.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/include/SDL2 -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2_image/include/SDL2 -isystem "C:/Program Files (x86)/Catch2/include"
+  OBJECT_DIR = CMakeFiles\BranchTest.dir
+  OBJECT_FILE_DIR = CMakeFiles\BranchTest.dir\src\ppu
+
+build CMakeFiles/BranchTest.dir/src/display/display.cpp.obj: CXX_COMPILER__BranchTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/display/display.cpp || cmake_object_order_depends_target_BranchTest
+  DEP_FILE = CMakeFiles\BranchTest.dir\src\display\display.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/include/SDL2 -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2_image/include/SDL2 -isystem "C:/Program Files (x86)/Catch2/include"
+  OBJECT_DIR = CMakeFiles\BranchTest.dir
+  OBJECT_FILE_DIR = CMakeFiles\BranchTest.dir\src\display
+
+build CMakeFiles/BranchTest.dir/src/utils.cpp.obj: CXX_COMPILER__BranchTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/utils.cpp || cmake_object_order_depends_target_BranchTest
+  DEP_FILE = CMakeFiles\BranchTest.dir\src\utils.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/include/SDL2 -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2_image/include/SDL2 -isystem "C:/Program Files (x86)/Catch2/include"
+  OBJECT_DIR = CMakeFiles\BranchTest.dir
+  OBJECT_FILE_DIR = CMakeFiles\BranchTest.dir\src
+
 build CMakeFiles/BranchTest.dir/src/cpu/cpu.cpp.obj: CXX_COMPILER__BranchTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/cpu/cpu.cpp || cmake_object_order_depends_target_BranchTest
   DEP_FILE = CMakeFiles\BranchTest.dir\src\cpu\cpu.cpp.obj.d
   FLAGS = -g -fdiagnostics-color=always
@@ -620,9 +823,9 @@ build CMakeFiles/BranchTest.dir/src/cpu/addressingMode.cpp.obj: CXX_COMPILER__Br
 #############################################
 # Link the executable BranchTest.exe
 
-build BranchTest.exe: CXX_EXECUTABLE_LINKER__BranchTest_Debug CMakeFiles/BranchTest.dir/src/test/cpu/branchTest.cpp.obj CMakeFiles/BranchTest.dir/src/cpu/cpu.cpp.obj CMakeFiles/BranchTest.dir/src/cpu/addressingMode.cpp.obj | C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2Main.a C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2.a
+build BranchTest.exe: CXX_EXECUTABLE_LINKER__BranchTest_Debug CMakeFiles/BranchTest.dir/src/test/cpu/branchTest.cpp.obj CMakeFiles/BranchTest.dir/src/ppu/ppu.cpp.obj CMakeFiles/BranchTest.dir/src/display/display.cpp.obj CMakeFiles/BranchTest.dir/src/utils.cpp.obj CMakeFiles/BranchTest.dir/src/cpu/cpu.cpp.obj CMakeFiles/BranchTest.dir/src/cpu/addressingMode.cpp.obj | C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2Main.a C$:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2main.a C$:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2.dll.a C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2.a
   FLAGS = -g
-  LINK_LIBRARIES = "C:/Program Files (x86)/Catch2/lib/libCatch2Main.a"  "C:/Program Files (x86)/Catch2/lib/libCatch2.a"  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
+  LINK_LIBRARIES = "C:/Program Files (x86)/Catch2/lib/libCatch2Main.a"  -lmingw32  -mwindows  C:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2main.a  C:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2.dll.a  "C:/Program Files (x86)/Catch2/lib/libCatch2.a"  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\BranchTest.dir
   POST_BUILD = cd .
   PRE_LINK = cd .
@@ -646,6 +849,27 @@ build CMakeFiles/StatusFlagTest.dir/src/test/cpu/statusFlagTest.cpp.obj: CXX_COM
   OBJECT_DIR = CMakeFiles\StatusFlagTest.dir
   OBJECT_FILE_DIR = CMakeFiles\StatusFlagTest.dir\src\test\cpu
 
+build CMakeFiles/StatusFlagTest.dir/src/ppu/ppu.cpp.obj: CXX_COMPILER__StatusFlagTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/ppu/ppu.cpp || cmake_object_order_depends_target_StatusFlagTest
+  DEP_FILE = CMakeFiles\StatusFlagTest.dir\src\ppu\ppu.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/include/SDL2 -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2_image/include/SDL2 -isystem "C:/Program Files (x86)/Catch2/include"
+  OBJECT_DIR = CMakeFiles\StatusFlagTest.dir
+  OBJECT_FILE_DIR = CMakeFiles\StatusFlagTest.dir\src\ppu
+
+build CMakeFiles/StatusFlagTest.dir/src/display/display.cpp.obj: CXX_COMPILER__StatusFlagTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/display/display.cpp || cmake_object_order_depends_target_StatusFlagTest
+  DEP_FILE = CMakeFiles\StatusFlagTest.dir\src\display\display.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/include/SDL2 -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2_image/include/SDL2 -isystem "C:/Program Files (x86)/Catch2/include"
+  OBJECT_DIR = CMakeFiles\StatusFlagTest.dir
+  OBJECT_FILE_DIR = CMakeFiles\StatusFlagTest.dir\src\display
+
+build CMakeFiles/StatusFlagTest.dir/src/utils.cpp.obj: CXX_COMPILER__StatusFlagTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/utils.cpp || cmake_object_order_depends_target_StatusFlagTest
+  DEP_FILE = CMakeFiles\StatusFlagTest.dir\src\utils.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/include/SDL2 -IC:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2_image/include/SDL2 -isystem "C:/Program Files (x86)/Catch2/include"
+  OBJECT_DIR = CMakeFiles\StatusFlagTest.dir
+  OBJECT_FILE_DIR = CMakeFiles\StatusFlagTest.dir\src
+
 build CMakeFiles/StatusFlagTest.dir/src/cpu/cpu.cpp.obj: CXX_COMPILER__StatusFlagTest_unscanned_Debug C$:/Users/MinhNguyen/CLionProjects/NESEmulator/src/cpu/cpu.cpp || cmake_object_order_depends_target_StatusFlagTest
   DEP_FILE = CMakeFiles\StatusFlagTest.dir\src\cpu\cpu.cpp.obj.d
   FLAGS = -g -fdiagnostics-color=always
@@ -668,9 +892,9 @@ build CMakeFiles/StatusFlagTest.dir/src/cpu/addressingMode.cpp.obj: CXX_COMPILER
 #############################################
 # Link the executable StatusFlagTest.exe
 
-build StatusFlagTest.exe: CXX_EXECUTABLE_LINKER__StatusFlagTest_Debug CMakeFiles/StatusFlagTest.dir/src/test/cpu/statusFlagTest.cpp.obj CMakeFiles/StatusFlagTest.dir/src/cpu/cpu.cpp.obj CMakeFiles/StatusFlagTest.dir/src/cpu/addressingMode.cpp.obj | C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2Main.a C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2.a
+build StatusFlagTest.exe: CXX_EXECUTABLE_LINKER__StatusFlagTest_Debug CMakeFiles/StatusFlagTest.dir/src/test/cpu/statusFlagTest.cpp.obj CMakeFiles/StatusFlagTest.dir/src/ppu/ppu.cpp.obj CMakeFiles/StatusFlagTest.dir/src/display/display.cpp.obj CMakeFiles/StatusFlagTest.dir/src/utils.cpp.obj CMakeFiles/StatusFlagTest.dir/src/cpu/cpu.cpp.obj CMakeFiles/StatusFlagTest.dir/src/cpu/addressingMode.cpp.obj | C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2Main.a C$:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2main.a C$:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2.dll.a C$:/Program$ Files$ (x86)/Catch2/lib/libCatch2.a
   FLAGS = -g
-  LINK_LIBRARIES = "C:/Program Files (x86)/Catch2/lib/libCatch2Main.a"  "C:/Program Files (x86)/Catch2/lib/libCatch2.a"  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
+  LINK_LIBRARIES = "C:/Program Files (x86)/Catch2/lib/libCatch2Main.a"  -lmingw32  -mwindows  C:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2main.a  C:/Users/MinhNguyen/CLionProjects/NESEmulator/SDL2/lib/libSDL2.dll.a  "C:/Program Files (x86)/Catch2/lib/libCatch2.a"  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\StatusFlagTest.dir
   POST_BUILD = cd .
   PRE_LINK = cd .

@@ -7,11 +7,17 @@
 #include "../../cpu/cpu.h"
 
 TEST_CASE("TAX") {
-  CPU cpu{};
+  CPU cpu{nullptr};
+  cpu.programCounter = 0xF000;
 
   byte input8 = GENERATE(0, 0x12, 0xFF);
   cpu.accumulator = input8;
-  cpu.executeOp(0xAA, 0xFF, 0xFF);
+
+  cpu.memory[0xF000] = 0xAA;
+  cpu.memory[0xF001] = 0xFF;
+  cpu.memory[0xF002] = 0xFF;
+
+  cpu.executeNextClock();
 
   CHECK(cpu.programCounter == 1);
   CHECK(cpu.cycle == 2);
@@ -33,11 +39,17 @@ TEST_CASE("TAX") {
 }
 
 TEST_CASE("TAY") {
-  CPU cpu{};
+  CPU cpu{nullptr};
+  cpu.programCounter = 0xF000;
 
   byte input8 = GENERATE(0, 0x12, 0xFF);
   cpu.accumulator = input8;
-  cpu.executeOp(0xA8, 0xFF, 0xFF);
+
+  cpu.memory[0xF000] = 0xA8;
+  cpu.memory[0xF001] = 0xFF;
+  cpu.memory[0xF002] = 0xFF;
+
+  cpu.executeNextClock();
 
   CHECK(cpu.programCounter == 1);
   CHECK(cpu.cycle == 2);
@@ -59,11 +71,17 @@ TEST_CASE("TAY") {
 }
 
 TEST_CASE("TXA") {
-  CPU cpu{};
+  CPU cpu{nullptr};
+  cpu.programCounter = 0xF000;
 
   byte input8 = GENERATE(0, 0x12, 0xFF);
   cpu.x = input8;
-  cpu.executeOp(0x8A, 0xFF, 0xFF);
+
+  cpu.memory[0xF000] = 0x8A;
+  cpu.memory[0xF001] = 0xFF;
+  cpu.memory[0xF002] = 0xFF;
+
+  cpu.executeNextClock();
 
   CHECK(cpu.programCounter == 1);
   CHECK(cpu.cycle == 2);
@@ -85,11 +103,17 @@ TEST_CASE("TXA") {
 }
 
 TEST_CASE("TYA") {
-  CPU cpu{};
+  CPU cpu{nullptr};
+  cpu.programCounter = 0xF000;
 
   byte input8 = GENERATE(0, 0x12, 0xFF);
   cpu.y = input8;
-  cpu.executeOp(0x98, 0xFF, 0xFF);
+
+  cpu.memory[0xF000] = 0x98;
+  cpu.memory[0xF001] = 0xFF;
+  cpu.memory[0xF002] = 0xFF;
+
+  cpu.executeNextClock();
 
   CHECK(cpu.programCounter == 1);
   CHECK(cpu.cycle == 2);

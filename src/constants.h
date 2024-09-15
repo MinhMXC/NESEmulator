@@ -2,7 +2,7 @@
 #define NESEMULATOR_CONSTANTS_H
 
 namespace EmuConst {
-  inline constexpr int SCALE_FACTOR = 8;
+  inline constexpr int SCALE_FACTOR = 4;
 
   inline constexpr int SCREEN_WIDTH = 256;
   inline constexpr int SCREEN_HEIGHT = 240;

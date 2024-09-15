@@ -7,7 +7,7 @@
 #include "../../cpu/cpu.h"
 
 TEST_CASE("BCC") {
-  CPU cpu{};
+  CPU cpu{nullptr};
 
   byte input8 = GENERATE(0, 0x12, 0xFF);
   cpu.programCounter = GENERATE(0xF, 0x12, 0xFF);
@@ -16,7 +16,11 @@ TEST_CASE("BCC") {
   const int initial{ cpu.programCounter + 2 };
   const int expected{ cpu.carry == false ? cpu.programCounter + static_cast<int8_t>(input8) + 2 : cpu.programCounter + 2 };
 
-  cpu.executeOp(0x90, input8, 0xFF);
+  cpu.memory[cpu.programCounter] = 0x90;
+  cpu.memory[cpu.programCounter + 1] = input8;
+  cpu.memory[cpu.programCounter + 2] = 0xFF;
+
+  cpu.executeNextClock();
 
   CHECK(cpu.programCounter == expected);
   CHECKED_IF(cpu.carry == false) {
@@ -28,7 +32,7 @@ TEST_CASE("BCC") {
 }
 
 TEST_CASE("BCS") {
-  CPU cpu{};
+  CPU cpu{nullptr};
 
   byte input8 = GENERATE(0, 0x12, 0xFF);
   cpu.programCounter = GENERATE(0xF, 0x12, 0xFF);
@@ -37,7 +41,11 @@ TEST_CASE("BCS") {
   const int initial{ cpu.programCounter + 2 };
   const int expected{ cpu.carry ? cpu.programCounter + static_cast<int8_t>(input8) + 2 : cpu.programCounter + 2 };
 
-  cpu.executeOp(0xB0, input8, 0xFF);
+  cpu.memory[cpu.programCounter] = 0xB0;
+  cpu.memory[cpu.programCounter + 1] = input8;
+  cpu.memory[cpu.programCounter + 2] = 0xFF;
+
+  cpu.executeNextClock();
 
   CHECK(cpu.programCounter == expected);
   CHECKED_IF(cpu.carry == true) {
@@ -49,7 +57,7 @@ TEST_CASE("BCS") {
 }
 
 TEST_CASE("BEQ") {
-  CPU cpu{};
+  CPU cpu{nullptr};
 
   byte input8 = GENERATE(0, 0x12, 0xFF);
   cpu.programCounter = GENERATE(0xF, 0x12, 0xFF);
@@ -58,7 +66,11 @@ TEST_CASE("BEQ") {
   const int initial{ cpu.programCounter + 2 };
   const int expected{ cpu.zero ? cpu.programCounter + static_cast<int8_t>(input8) + 2 : cpu.programCounter + 2 };
 
-  cpu.executeOp(0xF0, input8, 0xFF);
+  cpu.memory[cpu.programCounter] = 0xF0;
+  cpu.memory[cpu.programCounter + 1] = input8;
+  cpu.memory[cpu.programCounter + 2] = 0xFF;
+
+  cpu.executeNextClock();
 
   CHECK(cpu.programCounter == expected);
   CHECKED_IF(cpu.zero == true) {
@@ -70,7 +82,7 @@ TEST_CASE("BEQ") {
 }
 
 TEST_CASE("BMI") {
-  CPU cpu{};
+  CPU cpu{nullptr};
 
   byte input8 = GENERATE(0, 0x12, 0xFF);
   cpu.programCounter = GENERATE(0xF, 0x12, 0xFF);
@@ -79,7 +91,11 @@ TEST_CASE("BMI") {
   const int initial{ cpu.programCounter + 2 };
   const int expected{ cpu.negative ? cpu.programCounter + static_cast<int8_t>(input8) + 2 : cpu.programCounter + 2 };
 
-  cpu.executeOp(0x30, input8, 0xFF);
+  cpu.memory[cpu.programCounter] = 0x30;
+  cpu.memory[cpu.programCounter + 1] = input8;
+  cpu.memory[cpu.programCounter + 2] = 0xFF;
+
+  cpu.executeNextClock();
 
   CHECK(cpu.programCounter == expected);
   CHECKED_IF(cpu.negative == true) {
@@ -91,7 +107,7 @@ TEST_CASE("BMI") {
 }
 
 TEST_CASE("BNE") {
-  CPU cpu{};
+  CPU cpu{nullptr};
 
   byte input8 = GENERATE(0, 0x12, 0xFF);
   cpu.programCounter = GENERATE(0xF, 0x12, 0xFF);
@@ -100,7 +116,11 @@ TEST_CASE("BNE") {
   const int initial{ cpu.programCounter + 2 };
   const int expected{ cpu.zero == false ? cpu.programCounter + static_cast<int8_t>(input8) + 2 : cpu.programCounter + 2 };
 
-  cpu.executeOp(0xD0, input8, 0xFF);
+  cpu.memory[cpu.programCounter] = 0xD0;
+  cpu.memory[cpu.programCounter + 1] = input8;
+  cpu.memory[cpu.programCounter + 2] = 0xFF;
+
+  cpu.executeNextClock();
 
   CHECK(cpu.programCounter == expected);
   CHECKED_IF(cpu.zero == false) {
@@ -112,7 +132,7 @@ TEST_CASE("BNE") {
 }
 
 TEST_CASE("BPL") {
-  CPU cpu{};
+  CPU cpu{nullptr};
 
   byte input8 = GENERATE(0, 0x12, 0xFF);
   cpu.programCounter = GENERATE(0xF, 0x12, 0xFF);
@@ -121,7 +141,11 @@ TEST_CASE("BPL") {
   const int initial{ cpu.programCounter + 2 };
   const int expected{ cpu.negative == false ? cpu.programCounter + static_cast<int8_t>(input8) + 2 : cpu.programCounter + 2 };
 
-  cpu.executeOp(0x10, input8, 0xFF);
+  cpu.memory[cpu.programCounter] = 0x10;
+  cpu.memory[cpu.programCounter + 1] = input8;
+  cpu.memory[cpu.programCounter + 2] = 0xFF;
+
+  cpu.executeNextClock();
 
   CHECK(cpu.programCounter == expected);
   CHECKED_IF(cpu.negative == false) {
@@ -133,7 +157,7 @@ TEST_CASE("BPL") {
 }
 
 TEST_CASE("BVC") {
-  CPU cpu{};
+  CPU cpu{nullptr};
 
   byte input8 = GENERATE(0, 0x12, 0xFF);
   cpu.programCounter = GENERATE(0xF, 0x12, 0xFF);
@@ -142,7 +166,11 @@ TEST_CASE("BVC") {
   const int initial{ cpu.programCounter + 2 };
   const int expected{ cpu.overflow == false ? cpu.programCounter + static_cast<int8_t>(input8) + 2 : cpu.programCounter + 2 };
 
-  cpu.executeOp(0x50, input8, 0xFF);
+  cpu.memory[cpu.programCounter] = 0x50;
+  cpu.memory[cpu.programCounter + 1] = input8;
+  cpu.memory[cpu.programCounter + 2] = 0xFF;
+
+  cpu.executeNextClock();
 
   CHECK(cpu.programCounter == expected);
   CHECKED_IF(cpu.overflow == false) {
@@ -154,7 +182,7 @@ TEST_CASE("BVC") {
 }
 
 TEST_CASE("BVS") {
-  CPU cpu{};
+  CPU cpu{nullptr};
 
   byte input8 = GENERATE(0, 0x12, 0xFF);
   cpu.programCounter = GENERATE(0xF, 0x12, 0xFF);
@@ -163,7 +191,11 @@ TEST_CASE("BVS") {
   const int initial{ cpu.programCounter + 2 };
   const int expected{ cpu.overflow ? cpu.programCounter + static_cast<int8_t>(input8) + 2 : cpu.programCounter + 2 };
 
-  cpu.executeOp(0x70, input8, 0xFF);
+  cpu.memory[cpu.programCounter] = 0x70;
+  cpu.memory[cpu.programCounter + 1] = input8;
+  cpu.memory[cpu.programCounter + 2] = 0xFF;
+
+  cpu.executeNextClock();
 
   CHECK(cpu.programCounter == expected);
   CHECKED_IF(cpu.overflow == true) {

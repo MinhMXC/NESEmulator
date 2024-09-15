@@ -23,7 +23,7 @@ public:
     int chrRomSize{};
     int prgRamSize{};
 
-    bool isNametableHorizontal{};
+    bool nametableArrangement{};
     bool isPrgRamPresent{};
     bool isTrainerPresent{};
     bool isAlternativeNametableLayoutPresent{};
@@ -64,7 +64,7 @@ public:
           chrRomSize = current;
           break;
         case 6:
-          isNametableHorizontal = current & 0b1;
+          nametableArrangement = current & 0b1;
           isPrgRamPresent = current & 0b10;
           isTrainerPresent = current & 0b100;
           isAlternativeNametableLayoutPresent = current & 0b1000;
@@ -102,6 +102,8 @@ public:
       }
     }
 
+    ppu.nametableArrangement = nametableArrangement;
+
     // TODO: find out more about this
 //    if (isPrgRamPresent) {
 //      for (int i{}; i < 8192; i++) {
@@ -137,8 +139,6 @@ public:
     } else {
       return "More than 8KB CHR ROM was specified\n";
     }
-
-    cpu.programCounter = cpu.memory[0xFFFC] + (cpu.memory[0xFFFC + 1] << 8);
 
     return "";
   }

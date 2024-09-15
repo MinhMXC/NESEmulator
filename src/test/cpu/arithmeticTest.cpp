@@ -8,7 +8,8 @@
 
 
 TEST_CASE("ADC") {
-  CPU cpu{};
+  CPU cpu{nullptr};
+  cpu.programCounter = 0xF000;
 
   byte input8 = GENERATE(0, 0x12, 0xFF);
   byte input16 = GENERATE(0xF, 0xFF, 0x123);
@@ -18,9 +19,13 @@ TEST_CASE("ADC") {
     cpu.accumulator = input8;
     const int expected{ cpu.accumulator + input8 + cpu.carry };
 
-    cpu.executeOp(0x69, input8, 0xFF);
+    cpu.memory[0xF000] = 0x69;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
 
-    CHECK(cpu.programCounter == 2);
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 2);
 
     CHECK(cpu.accumulator == static_cast<byte>(expected));
@@ -51,9 +56,13 @@ TEST_CASE("ADC") {
     cpu.memory[input8] = input8;
     const int expected{ cpu.accumulator + input8 + cpu.carry };
 
-    cpu.executeOp(0x65, input8, 0xFF);
+    cpu.memory[0xF000] = 0x65;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
 
-    CHECK(cpu.programCounter == 2);
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 3);
 
     CHECK(cpu.accumulator == static_cast<byte>(expected));
@@ -85,9 +94,13 @@ TEST_CASE("ADC") {
     cpu.memory[static_cast<byte>(input8 + cpu.x)] = input8;
     const int expected{ cpu.accumulator + input8 + cpu.carry };
 
-    cpu.executeOp(0x75, input8, 0xFF);
+    cpu.memory[0xF000] = 0x75;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
 
-    CHECK(cpu.programCounter == 2);
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 4);
 
     CHECK(cpu.accumulator == static_cast<byte>(expected));
@@ -118,9 +131,13 @@ TEST_CASE("ADC") {
     cpu.writeMemory(input16, input8);
     const int expected{ cpu.accumulator + input8 + cpu.carry };
 
-    cpu.executeOp(0x6D, input16, input16 >> 8);
+    cpu.memory[0xF000] = 0x6D;
+    cpu.memory[0xF001] = input16;
+    cpu.memory[0xF002] = input16 >> 8;
 
-    CHECK(cpu.programCounter == 3);
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF003);
     CHECK(cpu.cycle == 4);
 
     CHECK(cpu.accumulator == static_cast<byte>(expected));
@@ -152,9 +169,13 @@ TEST_CASE("ADC") {
     cpu.writeMemory(input16 + cpu.x, input8);
     const int expected{ cpu.accumulator + input8 + cpu.carry };
 
-    cpu.executeOp(0x7D, input16, input16 >> 8);
+    cpu.memory[0xF000] = 0x7D;
+    cpu.memory[0xF001] = input16;
+    cpu.memory[0xF002] = input16 >> 8;
 
-    CHECK(cpu.programCounter == 3);
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF003);
 
     CHECKED_IF(((input16 + cpu.x) & 0xF00) != (input16 & 0xF00)) {
       CHECK(cpu.cycle == 5);
@@ -193,9 +214,13 @@ TEST_CASE("ADC") {
     cpu.writeMemory(input16 + cpu.y, input8);
     const int expected{ cpu.accumulator + input8 + cpu.carry };
 
-    cpu.executeOp(0x79, input16, input16 >> 8);
+    cpu.memory[0xF000] = 0x79;
+    cpu.memory[0xF001] = input16;
+    cpu.memory[0xF002] = input16 >> 8;
 
-    CHECK(cpu.programCounter == 3);
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF003);
 
     CHECKED_IF(((input16 + cpu.y) & 0xF00) != (input16 & 0xF00)) {
       CHECK(cpu.cycle == 5);
@@ -236,9 +261,13 @@ TEST_CASE("ADC") {
     cpu.writeMemory(input16, input8);
     const int expected{ cpu.accumulator + input8 + cpu.carry };
 
-    cpu.executeOp(0x61, input8, 0xFF);
+    cpu.memory[0xF000] = 0x61;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
 
-    CHECK(cpu.programCounter == 2);
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 6);
 
     CHECK(cpu.accumulator == static_cast<byte>(expected));
@@ -272,9 +301,13 @@ TEST_CASE("ADC") {
     cpu.writeMemory(input16 + cpu.y, input8);
     const int expected{ cpu.accumulator + input8 + cpu.carry };
 
-    cpu.executeOp(0x71, input8, 0xFF);
+    cpu.memory[0xF000] = 0x71;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
 
-    CHECK(cpu.programCounter == 2);
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF002);
 
     CHECKED_IF(((input16 + cpu.y) & 0xF00) != (input16 & 0xF00)) {
       CHECK(cpu.cycle == 6);
@@ -309,7 +342,8 @@ TEST_CASE("ADC") {
 }
 
 TEST_CASE("SBC") {
-  CPU cpu{};
+  CPU cpu{nullptr};
+  cpu.programCounter = 0xF000;
 
   byte input8 = GENERATE(0, 0x12, 0xFF);
   byte input16 = GENERATE(0xF, 0xFF, 0x123);
@@ -320,9 +354,13 @@ TEST_CASE("SBC") {
     const int res{ cpu.accumulator - input8 - cpu.carry };
     const byte expected{ static_cast<byte>(cpu.accumulator - input8 - cpu.carry) };
 
-    cpu.executeOp(0xE9, input8, 0xFF);
+    cpu.memory[0xF000] = 0xE9;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
 
-    CHECK(cpu.programCounter == 2);
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 2);
 
     CHECK(cpu.accumulator == expected);
@@ -354,9 +392,13 @@ TEST_CASE("SBC") {
     const int res{ cpu.accumulator - input8 - cpu.carry };
     const byte expected{ static_cast<byte>(cpu.accumulator - input8 - cpu.carry) };
 
-    cpu.executeOp(0xE5, input8, 0xFF);
+    cpu.memory[0xF000] = 0xE5;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
 
-    CHECK(cpu.programCounter == 2);
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 3);
 
     CHECK(cpu.accumulator == static_cast<byte>(expected));
@@ -389,9 +431,13 @@ TEST_CASE("SBC") {
     const int res{ cpu.accumulator - input8 - cpu.carry };
     const byte expected{ static_cast<byte>(cpu.accumulator - input8 - cpu.carry) };
 
-    cpu.executeOp(0xF5, input8, 0xFF);
+    cpu.memory[0xF000] = 0xF5;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
 
-    CHECK(cpu.programCounter == 2);
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 4);
 
     CHECK(cpu.accumulator == static_cast<byte>(expected));
@@ -423,9 +469,13 @@ TEST_CASE("SBC") {
     const int res{ cpu.accumulator - input8 - cpu.carry };
     const byte expected{ static_cast<byte>(cpu.accumulator - input8 - cpu.carry) };
 
-    cpu.executeOp(0xED, input16, input16 >> 8);
+    cpu.memory[0xF000] = 0xED;
+    cpu.memory[0xF001] = input16;
+    cpu.memory[0xF002] = input16 >> 8;
 
-    CHECK(cpu.programCounter == 3);
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF003);
     CHECK(cpu.cycle == 4);
 
     CHECK(cpu.accumulator == static_cast<byte>(expected));
@@ -458,9 +508,13 @@ TEST_CASE("SBC") {
     const int res{ cpu.accumulator - input8 - cpu.carry };
     const byte expected{ static_cast<byte>(cpu.accumulator - input8 - cpu.carry) };
 
-    cpu.executeOp(0xFD, input16, input16 >> 8);
+    cpu.memory[0xF000] = 0xFD;
+    cpu.memory[0xF001] = input16;
+    cpu.memory[0xF002] = input16 >> 8;
 
-    CHECK(cpu.programCounter == 3);
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF003);
 
     CHECKED_IF(((input16 + cpu.x) & 0xF00) != (input16 & 0xF00)) {
       CHECK(cpu.cycle == 5);
@@ -500,9 +554,13 @@ TEST_CASE("SBC") {
     const int res{ cpu.accumulator - input8 - cpu.carry };
     const byte expected{ static_cast<byte>(cpu.accumulator - input8 - cpu.carry) };
 
-    cpu.executeOp(0xF9, input16, input16 >> 8);
+    cpu.memory[0xF000] = 0xF9;
+    cpu.memory[0xF001] = input16;
+    cpu.memory[0xF002] = input16 >> 8;
 
-    CHECK(cpu.programCounter == 3);
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF003);
 
     CHECKED_IF(((input16 + cpu.y) & 0xF00) != (input16 & 0xF00)) {
       CHECK(cpu.cycle == 5);
@@ -544,9 +602,13 @@ TEST_CASE("SBC") {
     const int res{ cpu.accumulator - input8 - cpu.carry };
     const byte expected{ static_cast<byte>(cpu.accumulator - input8 - cpu.carry) };
 
-    cpu.executeOp(0xE1, input8, 0xFF);
+    cpu.memory[0xF000] = 0xE1;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
 
-    CHECK(cpu.programCounter == 2);
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 6);
 
     CHECK(cpu.accumulator == static_cast<byte>(expected));
@@ -581,9 +643,13 @@ TEST_CASE("SBC") {
     const int res{ cpu.accumulator - input8 - cpu.carry };
     const byte expected{ static_cast<byte>(cpu.accumulator - input8 - cpu.carry) };
 
-    cpu.executeOp(0xF1, input8, 0xFF);
+    cpu.memory[0xF000] = 0xF1;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
 
-    CHECK(cpu.programCounter == 2);
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF002);
 
     CHECKED_IF(((input16 + cpu.y) & 0xF00) != (input16 & 0xF00)) {
       CHECK(cpu.cycle == 6);
@@ -618,7 +684,8 @@ TEST_CASE("SBC") {
 }
 
 TEST_CASE("CMP") {
-  CPU cpu{};
+  CPU cpu{nullptr};
+  cpu.programCounter = 0xF000;
 
   byte input8 = GENERATE(0, 0x12, 0xFF);
   byte input16 = GENERATE(0xF, 0xFF, 0x123);
@@ -629,9 +696,13 @@ TEST_CASE("CMP") {
     const int res{ cpu.accumulator - input8 };
     const byte expected{ static_cast<byte>(cpu.accumulator - input8) };
 
-    cpu.executeOp(0xC9, input8, 0xFF);
+    cpu.memory[0xF000] = 0xC9;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
 
-    CHECK(cpu.programCounter == 2);
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 2);
 
     CHECK(cpu.accumulator == input8);
@@ -664,9 +735,13 @@ TEST_CASE("CMP") {
     const int res{ cpu.accumulator - input8 };
     const byte expected{ static_cast<byte>(cpu.accumulator - input8) };
 
-    cpu.executeOp(0xC5, input8, 0xFF);
+    cpu.memory[0xF000] = 0xC5;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
 
-    CHECK(cpu.programCounter == 2);
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 3);
 
     CHECK(cpu.accumulator == input8);
@@ -701,9 +776,13 @@ TEST_CASE("CMP") {
     const int res{ cpu.accumulator - input8 };
     const byte expected{ static_cast<byte>(cpu.accumulator - input8) };
 
-    cpu.executeOp(0xD5, input8, 0xFF);
+    cpu.memory[0xF000] = 0xD5;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
 
-    CHECK(cpu.programCounter == 2);
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 4);
 
     CHECK(cpu.accumulator == input8);
@@ -737,9 +816,13 @@ TEST_CASE("CMP") {
     const int res{ cpu.accumulator - input8 };
     const byte expected{ static_cast<byte>(cpu.accumulator - input8) };
 
-    cpu.executeOp(0xCD, input16, input16 >> 8);
+    cpu.memory[0xF000] = 0xCD;
+    cpu.memory[0xF001] = input16;
+    cpu.memory[0xF002] = input16 >> 8;
 
-    CHECK(cpu.programCounter == 3);
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF003);
     CHECK(cpu.cycle == 4);
 
     CHECK(cpu.accumulator == input8);
@@ -774,9 +857,13 @@ TEST_CASE("CMP") {
     const int res{ cpu.accumulator - input8 };
     const byte expected{ static_cast<byte>(cpu.accumulator - input8) };
 
-    cpu.executeOp(0xDD, input16, input16 >> 8);
+    cpu.memory[0xF000] = 0xDD;
+    cpu.memory[0xF001] = input16;
+    cpu.memory[0xF002] = input16 >> 8;
 
-    CHECK(cpu.programCounter == 3);
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF003);
 
     CHECKED_IF(((input16 + cpu.x) & 0xF00) != (input16 & 0xF00)) {
       CHECK(cpu.cycle == 5);
@@ -818,9 +905,13 @@ TEST_CASE("CMP") {
     const int res{ cpu.accumulator - input8 };
     const byte expected{ static_cast<byte>(cpu.accumulator - input8) };
 
-    cpu.executeOp(0xD9, input16, input16 >> 8);
+    cpu.memory[0xF000] = 0xD9;
+    cpu.memory[0xF001] = input16;
+    cpu.memory[0xF002] = input16 >> 8;
 
-    CHECK(cpu.programCounter == 3);
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF003);
 
     CHECKED_IF(((input16 + cpu.y) & 0xF00) != (input16 & 0xF00)) {
       CHECK(cpu.cycle == 5);
@@ -864,9 +955,13 @@ TEST_CASE("CMP") {
     const int res{ cpu.accumulator - input8 };
     const byte expected{ static_cast<byte>(cpu.accumulator - input8) };
 
-    cpu.executeOp(0xC1, input8, 0xFF);
+    cpu.memory[0xF000] = 0xC1;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
 
-    CHECK(cpu.programCounter == 2);
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 6);
 
     CHECK(cpu.accumulator == input8);
@@ -903,9 +998,13 @@ TEST_CASE("CMP") {
     const int res{ cpu.accumulator - input8 };
     const byte expected{ static_cast<byte>(cpu.accumulator - input8) };
 
-    cpu.executeOp(0xD1, input8, 0xFF);
+    cpu.memory[0xF000] = 0xD1;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
 
-    CHECK(cpu.programCounter == 2);
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF002);
 
     CHECKED_IF(((input16 + cpu.y) & 0xF00) != (input16 & 0xF00)) {
       CHECK(cpu.cycle == 6);
@@ -942,7 +1041,8 @@ TEST_CASE("CMP") {
 }
 
 TEST_CASE("CMX") {
-  CPU cpu{};
+  CPU cpu{nullptr};
+  cpu.programCounter = 0xF000;
 
   byte input8 = GENERATE(0, 0x12, 0xFF);
   byte input16 = GENERATE(0xF, 0xFF, 0x123);
@@ -952,9 +1052,13 @@ TEST_CASE("CMX") {
     const int res{ cpu.x - input8 };
     const byte expected{ static_cast<byte>(cpu.x - input8) };
 
-    cpu.executeOp(0xE0, input8, 0xFF);
+    cpu.memory[0xF000] = 0xE0;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
 
-    CHECK(cpu.programCounter == 2);
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 2);
 
     CHECK(cpu.x == input8);
@@ -987,9 +1091,13 @@ TEST_CASE("CMX") {
     const int res{ cpu.x - input8 };
     const byte expected{ static_cast<byte>(cpu.x - input8) };
 
-    cpu.executeOp(0xE4, input8, 0xFF);
+    cpu.memory[0xF000] = 0xE4;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
 
-    CHECK(cpu.programCounter == 2);
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 3);
 
     CHECK(cpu.x == input8);
@@ -1023,9 +1131,13 @@ TEST_CASE("CMX") {
     const int res{ cpu.x - input8 };
     const byte expected{ static_cast<byte>(cpu.x - input8) };
 
-    cpu.executeOp(0xEC, input16, input16 >> 8);
+    cpu.memory[0xF000] = 0xEC;
+    cpu.memory[0xF001] = input16;
+    cpu.memory[0xF002] = input16 >> 8;
 
-    CHECK(cpu.programCounter == 3);
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF003);
     CHECK(cpu.cycle == 4);
 
     CHECK(cpu.x == input8);
@@ -1055,7 +1167,8 @@ TEST_CASE("CMX") {
 }
 
 TEST_CASE("CMY") {
-  CPU cpu{};
+  CPU cpu{nullptr};
+  cpu.programCounter = 0xF000;
 
   byte input8 = GENERATE(0, 0x12, 0xFF);
   byte input16 = GENERATE(0xF, 0xFF, 0x123);
@@ -1065,9 +1178,13 @@ TEST_CASE("CMY") {
     const int res{ cpu.y - input8 };
     const byte expected{ static_cast<byte>(cpu.y - input8) };
 
-    cpu.executeOp(0xC0, input8, 0xFF);
+    cpu.memory[0xF000] = 0xC0;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
 
-    CHECK(cpu.programCounter == 2);
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 2);
 
     CHECK(cpu.y == input8);
@@ -1100,9 +1217,13 @@ TEST_CASE("CMY") {
     const int res{ cpu.y - input8 };
     const byte expected{ static_cast<byte>(cpu.y - input8) };
 
-    cpu.executeOp(0xC4, input8, 0xFF);
+    cpu.memory[0xF000] = 0xC4;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
 
-    CHECK(cpu.programCounter == 2);
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 3);
 
     CHECK(cpu.y == input8);
@@ -1136,9 +1257,13 @@ TEST_CASE("CMY") {
     const int res{ cpu.y - input8 };
     const byte expected{ static_cast<byte>(cpu.y - input8) };
 
-    cpu.executeOp(0xCC, input16, input16 >> 8);
+    cpu.memory[0xF000] = 0xCC;
+    cpu.memory[0xF001] = input16;
+    cpu.memory[0xF002] = input16 >> 8;
 
-    CHECK(cpu.programCounter == 3);
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF003);
     CHECK(cpu.cycle == 4);
 
     CHECK(cpu.y == input8);

@@ -28,7 +28,11 @@ public:
   void writePPUScroll(byte val);
   void writePPUAddr(byte val);
   void writePPUData(byte val);
-  void writeOAMDma(std::vector<byte>& cpuMem, int input);
+  void writeOAMDma(std::vector<byte>& cpuMem, byte input);
+
+  // Emulation
+  byte readPPUStatusNoSideEffect() const;
+  byte readPPUCtrlNoSideEffect() const;
 
   void executeNextClock();
 
@@ -37,13 +41,15 @@ public:
   std::vector<byte> oam;
   std::vector<byte> secondaryOam;
 
-private:
-  Display& display;
-
-  // For keep track
+  // Emulation
   int cycle;
   int scanline;
   bool isEvenFrame;
+  int frame;
+  bool disableNextNMI;
+  bool nametableArrangement; // 0 = horizontal, 1 = vertical
+private:
+  Display& display;
 
   // Memory
 
@@ -70,6 +76,11 @@ private:
   // Store the 256 pixel data for the sprite in next scanline
   // first 5 bit == palette index, 5th bit == sprite 0, 6th bit == priority, 7th bit == hasBeenWrittenTo
   std::vector<byte> spritePixelData;
+
+  // Memory Mapping
+  byte readMemory(word addr);
+  void writeMemory(word addr, byte input);
+  word mapMemory(word addr) const;
 
   void handleVisibleScanline();
   void handleBackgroundFetching();

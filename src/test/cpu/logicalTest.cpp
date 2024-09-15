@@ -7,7 +7,8 @@
 #include "../../cpu/cpu.h"
 
 TEST_CASE("AND") {
-  CPU cpu{};
+  CPU cpu{nullptr};
+  cpu.programCounter = 0xF000;
 
   byte input8 = GENERATE(0, 0x12, 0xFF);
   byte input16 = GENERATE(0xF, 0xFF, 0x123);
@@ -15,9 +16,14 @@ TEST_CASE("AND") {
   SECTION("Immediate") {
     cpu.accumulator = 0x34;
     byte expected{ static_cast<byte>(cpu.accumulator & input8) };
-    cpu.executeOp(0x29, input8, 0xFF);
 
-    CHECK(cpu.programCounter == 2);
+    cpu.memory[0xF000] = 0x29;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
+
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 2);
 
     CHECK(cpu.accumulator == expected);
@@ -40,9 +46,14 @@ TEST_CASE("AND") {
     cpu.memory[input8] = input8;
     cpu.accumulator = 0x34;
     byte expected{ static_cast<byte>(cpu.accumulator & input8) };
-    cpu.executeOp(0x25, input8, 0xFF);
 
-    CHECK(cpu.programCounter == 2);
+    cpu.memory[0xF000] = 0x25;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
+
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 3);
 
     CHECK(cpu.accumulator == expected);
@@ -66,9 +77,14 @@ TEST_CASE("AND") {
     cpu.memory[(input8 + cpu.x) & 0xFF] = input8;
     cpu.accumulator = 0x34;
     byte expected{ static_cast<byte>(cpu.accumulator & input8) };
-    cpu.executeOp(0x35, input8, 0xFF);
 
-    CHECK(cpu.programCounter == 2);
+    cpu.memory[0xF000] = 0x35;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
+
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 4);
 
     CHECK(cpu.accumulator == expected);
@@ -90,9 +106,14 @@ TEST_CASE("AND") {
   SECTION("Absolute") {
     cpu.writeMemory(input16, input8);
     byte expected{ static_cast<byte>(cpu.accumulator & input8) };
-    cpu.executeOp(0x2D, input16, input16 >> 8);
 
-    CHECK(cpu.programCounter == 3);
+    cpu.memory[0xF000] = 0x2D;
+    cpu.memory[0xF001] = input16;
+    cpu.memory[0xF002] = input16 >> 8;
+
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF003);
     CHECK(cpu.cycle == 4);
 
     CHECK(cpu.accumulator == expected);
@@ -115,9 +136,14 @@ TEST_CASE("AND") {
     cpu.x = 1;
     cpu.writeMemory(input16 + cpu.x, input8);
     byte expected{ static_cast<byte>(cpu.accumulator & input8) };
-    cpu.executeOp(0x3D, input16, input16 >> 8);
 
-    CHECK(cpu.programCounter == 3);
+    cpu.memory[0xF000] = 0x3D;
+    cpu.memory[0xF001] = input16;
+    cpu.memory[0xF002] = input16 >> 8;
+
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF003);
     CHECKED_IF(((input16 + cpu.x) & 0xF00) != (input16 & 0xF00)) {
       CHECK(cpu.cycle == 5);
     }
@@ -146,9 +172,14 @@ TEST_CASE("AND") {
     cpu.y = 1;
     cpu.writeMemory(input16 + cpu.y, input8);
     byte expected{ static_cast<byte>(cpu.accumulator & input8) };
-    cpu.executeOp(0x39, input16, input16 >> 8);
 
-    CHECK(cpu.programCounter == 3);
+    cpu.memory[0xF000] = 0x39;
+    cpu.memory[0xF001] = input16;
+    cpu.memory[0xF002] = input16 >> 8;
+
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF003);
     CHECKED_IF(((input16 + cpu.y) & 0xF00) != (input16 & 0xF00)) {
       CHECK(cpu.cycle == 5);
     }
@@ -179,9 +210,14 @@ TEST_CASE("AND") {
     cpu.memory[static_cast<byte>(input8 + cpu.x + 1)] = input16 >> 8;
     cpu.writeMemory(input16, input8);
     byte expected{ static_cast<byte>(cpu.accumulator & input8) };
-    cpu.executeOp(0x21, input8, 0xFF);
 
-    CHECK(cpu.programCounter == 2);
+    cpu.memory[0xF000] = 0x21;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
+
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 6);
 
     CHECK(cpu.accumulator == expected);
@@ -206,9 +242,14 @@ TEST_CASE("AND") {
     cpu.memory[static_cast<byte>(input8 + 1)] = input16 >> 8;
     cpu.writeMemory(input16 + cpu.y, input8);
     byte expected{ static_cast<byte>(cpu.accumulator & input8) };
-    cpu.executeOp(0x31, input8, 0xFF);
 
-    CHECK(cpu.programCounter == 2);
+    cpu.memory[0xF000] = 0x31;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
+
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF002);
     CHECKED_IF(((input16 + cpu.y) & 0xF00) != (input16 & 0xF00)) {
       CHECK(cpu.cycle == 6);
     }
@@ -235,7 +276,8 @@ TEST_CASE("AND") {
 }
 
 TEST_CASE("EOR") {
-  CPU cpu{};
+  CPU cpu{nullptr};
+  cpu.programCounter = 0xF000;
 
   byte input8 = GENERATE(0, 0x12, 0xFF);
   byte input16 = GENERATE(0xF, 0xFF, 0x123);
@@ -243,9 +285,14 @@ TEST_CASE("EOR") {
   SECTION("Immediate") {
     cpu.accumulator = 0x34;
     byte expected{ static_cast<byte>(cpu.accumulator ^ input8) };
-    cpu.executeOp(0x49, input8, 0xFF);
 
-    CHECK(cpu.programCounter == 2);
+    cpu.memory[0xF000] = 0x49;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
+
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 2);
 
     CHECK(cpu.accumulator == expected);
@@ -268,9 +315,14 @@ TEST_CASE("EOR") {
     cpu.memory[input8] = input8;
     cpu.accumulator = 0x34;
     byte expected{ static_cast<byte>(cpu.accumulator ^ input8) };
-    cpu.executeOp(0x45, input8, 0xFF);
 
-    CHECK(cpu.programCounter == 2);
+    cpu.memory[0xF000] = 0x45;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
+
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 3);
 
     CHECK(cpu.accumulator == expected);
@@ -294,9 +346,14 @@ TEST_CASE("EOR") {
     cpu.memory[(input8 + cpu.x) & 0xFF] = input8;
     cpu.accumulator = 0x34;
     byte expected{ static_cast<byte>(cpu.accumulator ^ input8) };
-    cpu.executeOp(0x55, input8, 0xFF);
 
-    CHECK(cpu.programCounter == 2);
+    cpu.memory[0xF000] = 0x55;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
+
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 4);
 
     CHECK(cpu.accumulator == expected);
@@ -318,9 +375,14 @@ TEST_CASE("EOR") {
   SECTION("Absolute") {
     cpu.writeMemory(input16, input8);
     byte expected{ static_cast<byte>(cpu.accumulator ^ input8) };
-    cpu.executeOp(0x4D, input16, input16 >> 8);
 
-    CHECK(cpu.programCounter == 3);
+    cpu.memory[0xF000] = 0x4D;
+    cpu.memory[0xF001] = input16;
+    cpu.memory[0xF002] = input16 >> 8;
+
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF003);
     CHECK(cpu.cycle == 4);
 
     CHECK(cpu.accumulator == expected);
@@ -343,9 +405,14 @@ TEST_CASE("EOR") {
     cpu.x = 1;
     cpu.writeMemory(input16 + cpu.x, input8);
     byte expected{ static_cast<byte>(cpu.accumulator ^ input8) };
-    cpu.executeOp(0x5D, input16, input16 >> 8);
 
-    CHECK(cpu.programCounter == 3);
+    cpu.memory[0xF000] = 0x5D;
+    cpu.memory[0xF001] = input16;
+    cpu.memory[0xF002] = input16 >> 8;
+
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF003);
     CHECKED_IF(((input16 + cpu.x) & 0xF00) != (input16 & 0xF00)) {
       CHECK(cpu.cycle == 5);
     }
@@ -374,9 +441,14 @@ TEST_CASE("EOR") {
     cpu.y = 1;
     cpu.writeMemory(input16 + cpu.y, input8);
     byte expected{ static_cast<byte>(cpu.accumulator ^ input8) };
-    cpu.executeOp(0x59, input16, input16 >> 8);
 
-    CHECK(cpu.programCounter == 3);
+    cpu.memory[0xF000] = 0x59;
+    cpu.memory[0xF001] = input16;
+    cpu.memory[0xF002] = input16 >> 8;
+
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF003);
     CHECKED_IF(((input16 + cpu.y) & 0xF00) != (input16 & 0xF00)) {
       CHECK(cpu.cycle == 5);
     }
@@ -407,9 +479,14 @@ TEST_CASE("EOR") {
     cpu.memory[static_cast<byte>(input8 + cpu.x + 1)] = input16 >> 8;
     cpu.writeMemory(input16, input8);
     byte expected{ static_cast<byte>(cpu.accumulator ^ input8) };
-    cpu.executeOp(0x41, input8, 0xFF);
 
-    CHECK(cpu.programCounter == 2);
+    cpu.memory[0xF000] = 0x41;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
+
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 6);
 
     CHECK(cpu.accumulator == expected);
@@ -434,9 +511,14 @@ TEST_CASE("EOR") {
     cpu.memory[static_cast<byte>(input8 + 1)] = input16 >> 8;
     cpu.writeMemory(input16 + cpu.y, input8);
     byte expected{ static_cast<byte>(cpu.accumulator ^ input8) };
-    cpu.executeOp(0x51, input8, 0xFF);
 
-    CHECK(cpu.programCounter == 2);
+    cpu.memory[0xF000] = 0x51;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
+
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF002);
     CHECKED_IF(((input16 + cpu.y) & 0xF00) != (input16 & 0xF00)) {
       CHECK(cpu.cycle == 6);
     }
@@ -463,7 +545,8 @@ TEST_CASE("EOR") {
 }
 
 TEST_CASE("ORA") {
-  CPU cpu{};
+  CPU cpu{nullptr};
+  cpu.programCounter = 0xF000;
 
   byte input8 = GENERATE(0, 0x12, 0xFF);
   byte input16 = GENERATE(0xF, 0xFF, 0x123);
@@ -471,9 +554,14 @@ TEST_CASE("ORA") {
   SECTION("Immediate") {
     cpu.accumulator = 0x34;
     byte expected{ static_cast<byte>(cpu.accumulator | input8) };
-    cpu.executeOp(0x09, input8, 0xFF);
 
-    CHECK(cpu.programCounter == 2);
+    cpu.memory[0xF000] = 0x09;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
+
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 2);
 
     CHECK(cpu.accumulator == expected);
@@ -496,9 +584,14 @@ TEST_CASE("ORA") {
     cpu.memory[input8] = input8;
     cpu.accumulator = 0x34;
     byte expected{ static_cast<byte>(cpu.accumulator | input8) };
-    cpu.executeOp(0x05, input8, 0xFF);
 
-    CHECK(cpu.programCounter == 2);
+    cpu.memory[0xF000] = 0x05;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
+
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 3);
 
     CHECK(cpu.accumulator == expected);
@@ -522,9 +615,14 @@ TEST_CASE("ORA") {
     cpu.memory[(input8 + cpu.x) & 0xFF] = input8;
     cpu.accumulator = 0x34;
     byte expected{ static_cast<byte>(cpu.accumulator | input8) };
-    cpu.executeOp(0x15, input8, 0xFF);
 
-    CHECK(cpu.programCounter == 2);
+    cpu.memory[0xF000] = 0x15;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
+
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 4);
 
     CHECK(cpu.accumulator == expected);
@@ -546,9 +644,14 @@ TEST_CASE("ORA") {
   SECTION("Absolute") {
     cpu.writeMemory(input16, input8);
     byte expected{ static_cast<byte>(cpu.accumulator | input8) };
-    cpu.executeOp(0x0D, input16, input16 >> 8);
 
-    CHECK(cpu.programCounter == 3);
+    cpu.memory[0xF000] = 0x0D;
+    cpu.memory[0xF001] = input16;
+    cpu.memory[0xF002] = input16 >> 8;
+
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF003);
     CHECK(cpu.cycle == 4);
 
     CHECK(cpu.accumulator == expected);
@@ -571,9 +674,14 @@ TEST_CASE("ORA") {
     cpu.x = 1;
     cpu.writeMemory(input16 + cpu.x, input8);
     byte expected{ static_cast<byte>(cpu.accumulator | input8) };
-    cpu.executeOp(0x1D, input16, input16 >> 8);
 
-    CHECK(cpu.programCounter == 3);
+    cpu.memory[0xF000] = 0x1D;
+    cpu.memory[0xF001] = input16;
+    cpu.memory[0xF002] = input16 >> 8;
+
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF003);
     CHECKED_IF(((input16 + cpu.x) & 0xF00) != (input16 & 0xF00)) {
       CHECK(cpu.cycle == 5);
     }
@@ -602,9 +710,14 @@ TEST_CASE("ORA") {
     cpu.y = 1;
     cpu.writeMemory(input16 + cpu.y, input8);
     byte expected{ static_cast<byte>(cpu.accumulator | input8) };
-    cpu.executeOp(0x19, input16, input16 >> 8);
 
-    CHECK(cpu.programCounter == 3);
+    cpu.memory[0xF000] = 0x19;
+    cpu.memory[0xF001] = input16;
+    cpu.memory[0xF002] = input16 >> 8;
+
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF003);
     CHECKED_IF(((input16 + cpu.y) & 0xF00) != (input16 & 0xF00)) {
       CHECK(cpu.cycle == 5);
     }
@@ -635,9 +748,14 @@ TEST_CASE("ORA") {
     cpu.memory[static_cast<byte>(input8 + cpu.x + 1)] = input16 >> 8;
     cpu.writeMemory(input16, input8);
     byte expected{ static_cast<byte>(cpu.accumulator | input8) };
-    cpu.executeOp(0x01, input8, 0xFF);
 
-    CHECK(cpu.programCounter == 2);
+    cpu.memory[0xF000] = 0x01;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
+
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 6);
 
     CHECK(cpu.accumulator == expected);
@@ -662,9 +780,14 @@ TEST_CASE("ORA") {
     cpu.memory[static_cast<byte>(input8 + 1)] = input16 >> 8;
     cpu.writeMemory(input16 + cpu.y, input8);
     byte expected{ static_cast<byte>(cpu.accumulator | input8) };
-    cpu.executeOp(0x11, input8, 0xFF);
 
-    CHECK(cpu.programCounter == 2);
+    cpu.memory[0xF000] = 0x11;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
+
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF002);
     CHECKED_IF(((input16 + cpu.y) & 0xF00) != (input16 & 0xF00)) {
       CHECK(cpu.cycle == 6);
     }
@@ -691,7 +814,8 @@ TEST_CASE("ORA") {
 }
 
 TEST_CASE("BIT") {
-  CPU cpu{};
+  CPU cpu{nullptr};
+  cpu.programCounter = 0xF000;
 
   byte input8 = GENERATE(0, 0x12, 0xFF);
   byte input16 = GENERATE(0xF, 0xFF, 0x123);
@@ -699,9 +823,14 @@ TEST_CASE("BIT") {
   SECTION("Zero Page") {
     cpu.accumulator = 0xFF;
     cpu.writeMemory(input8, input8);
-    cpu.executeOp(0x24, input8, 0xFF);
 
-    CHECK(cpu.programCounter == 2);
+    cpu.memory[0xF000] = 0x24;
+    cpu.memory[0xF001] = input8;
+    cpu.memory[0xF002] = 0xFF;
+
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 3);
 
     CHECK(cpu.accumulator == 0xFF);
@@ -732,9 +861,14 @@ TEST_CASE("BIT") {
   SECTION("Absolute") {
     cpu.accumulator = 0xFF;
     cpu.writeMemory(input16, input8);
-    cpu.executeOp(0x2C, input16, input16 >> 8);
 
-    CHECK(cpu.programCounter == 3);
+    cpu.memory[0xF000] = 0x2C;
+    cpu.memory[0xF001] = input16;
+    cpu.memory[0xF002] = input16 >> 8;
+
+    cpu.executeNextClock();
+
+    CHECK(cpu.programCounter == 0xF003);
     CHECK(cpu.cycle == 4);
 
     CHECK(cpu.accumulator == 0xFF);

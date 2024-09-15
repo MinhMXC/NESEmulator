@@ -3,25 +3,38 @@
 #include "../utils.h"
 #include <cstdio>
 
-PPU::PPU(Display& display) : memory(0x4000), oam(0x100), secondaryOam(0x20), spritePixelData(EmuConst::SCREEN_WIDTH),
-ppuCtrl{}, ppuMask{}, ppuStatus{0b0000'0001}, oamAddr{}, v{}, t{}, x{}, w{}, cycle{-1}, scanline{-1}, isEvenFrame{false},
-lowBGShiftRegister{}, highBGShiftRegister{}, attrQueue{}, display{display}, first{true} {}
+PPU::PPU(Display& display) : memory(0x4000), oam(0x100, 0xFF), secondaryOam(0x20), spritePixelData(EmuConst::SCREEN_WIDTH),
+ppuCtrl{}, ppuMask{}, ppuStatus{}, oamAddr{}, v{}, t{}, x{}, w{}, cycle{-1}, scanline{-1}, isEvenFrame{false},
+lowBGShiftRegister{}, highBGShiftRegister{}, attrQueue{}, display{display}, first{true}, frame{-1}, disableNextNMI{false},
+nametableArrangement{} {}
 
 void PPU::executeNextClock() {
+  if (cycle == 340)
+    int i{};
+
   cycle = (cycle + 1) % 341;
   if (cycle == 0) {
     scanline = (scanline + 1) % 262;
     if (scanline == 0) {
       // Write to yScroll is ignored during rendering
       isEvenFrame = !isEvenFrame;
+      frame += 1;
     }
   }
 
   if (first) {
+    if (scanline == 241 && cycle == 1) {
+      ppuStatus |= 0b1000'0000;
+    }
+
     if (scanline == 261 && cycle == 320) {
       first = false;
     }
     return;
+  }
+
+  if (scanline == 245 && cycle == 50) {
+    int i{};
   }
 
   switch (scanline) {
@@ -32,9 +45,12 @@ void PPU::executeNextClock() {
       break;
     case 241:
       if (cycle == 1) {
-        display.updateScreen();
-        display.clearBuffer();
-        ppuStatus |= 0b1000'0000;
+        if (!disableNextNMI) {
+          display.updateScreen();
+          display.clearBuffer();
+          ppuStatus |= 0b1000'0000;
+        }
+        disableNextNMI = false;
       }
     case 242 ... 260:
       break;
@@ -42,27 +58,93 @@ void PPU::executeNextClock() {
       if (cycle == 1) {
         ppuStatus = 0;
       }
-      if (cycle == 341) {
-        first = false;
-      }
 
       handlePreRenderScanline();
 
       // Jump to (0, 0) on odd frames
-      if (cycle == 341 && !isEvenFrame) {
+      if (isRendering() && cycle == 340 && !isEvenFrame) {
         cycle = 0;
         scanline = 0;
-        v = t;
         isEvenFrame = !isEvenFrame;
-        isEvenFrame = !isEvenFrame;
+        frame += 1;
       }
     default:
       break;
   }
 }
 
+word PPU::mapMemory(word addr) const {
+  switch (addr) {
+    case 0x2000 ... 0x2FFF:
+      if (nametableArrangement) { // Vertical Mirroring
+        switch (addr) {
+          case 0x2000 ... 0x27FF:
+            addr = addr;
+            break;
+          case 0x2800 ... 0x2FFF:
+            addr -= 0x800;
+            break;
+          default:
+            printf("vertical Mirroring default encountered!\n");
+        }
+      } else { // Horizontal Mirroring
+        switch (addr) {
+          case 0x2000 ... 0x23FF:
+            addr = addr;
+            break;
+          case 0x2400 ... 0x27FF:
+            addr -= 400;
+            break;
+          case 0x2800 ... 0x2BFF:
+            addr = addr;
+            break;
+          case 0x2C00 ... 0x2FFF:
+            addr -= 400;
+            break;
+          default:
+            printf("horizontal Mirroring default encountered! @ %04X\n", addr);
+        }
+      }
+      break;
+    case 0x3F00 ... 0x3FFF:
+      switch (addr % 0x20) {
+        case 0x10:
+          addr = 0x3F00;
+          break;
+        case 0x14:
+          addr = 0x3F04;
+          break;
+        case 0x18:
+          addr = 0x3F08;
+          break;
+        case 0x1C:
+          addr = 0x3F0C;
+          break;
+        default:
+          addr = addr;
+          break;
+      }
+      break;
+    default:
+      break;
+  }
+
+  return addr;
+}
+
+byte PPU::readMemory(word addr) {
+  return memory[mapMemory(addr)];
+}
+
+void PPU::writeMemory(word addr, byte input) {
+  memory[mapMemory(addr)] = input;
+}
+
 // internal rendering system
 void PPU::handleVisibleScanline() {
+  if (scanline == 0 && cycle == 1)
+    int i{};
+
   switch (cycle) {
     case 0:
       break;
@@ -117,8 +199,11 @@ void PPU::handlePreRenderScanline() {
     case 0 ... 256:
       break;
     case 257:
-      v &= 0x7BE0;
-      v |= (t & 0x41F);
+      if (isRendering()) {
+        v &= 0x7BE0;
+        v |= (t & 0x41F);
+      }
+      attrQueue = std::queue<byte>();
       break;
     case 280 ... 304:
       if (isRendering()) {
@@ -141,30 +226,34 @@ void PPU::handleBackgroundFetching() {
   static byte ptrnTableTileLow{};
   static byte ptrnTableTileHigh{};
 
+  if (scanline == 0 && cycle == 1) {
+    int i{};
+  }
+
   switch (cycle % 8) {
     case 1:
-      nameTableByte = memory[0x2000 | (v & 0x0FFF)];
+      nameTableByte = readMemory(0x2000 | (v & 0x0FFF));
       break;
     case 2:
       break;
     case 3:
-      attrQueue.push(memory[0x23C0 | (v & 0x0C00) | ((v >> 4) & 0x38) | ((v >> 2) & 0x07)]);
+      attrQueue.push(readMemory(0x23C0 | (v & 0x0C00) | ((v >> 4) & 0x38) | ((v >> 2) & 0x07)));
       break;
     case 4:
       break;
     case 5:
-      ptrnTableTileLow = memory[((ppuCtrl & 0b1000) << 9) | (nameTableByte << 4) | ((v & 0x7000) >> 12)];
+      ptrnTableTileLow = readMemory(((ppuCtrl & 0b10000) << 8) | (nameTableByte << 4) | ((v & 0x7000) >> 12));
       break;
     case 6:
       break;
     case 7:
-      ptrnTableTileHigh = memory[((ppuCtrl & 0b1000) << 9) | (nameTableByte << 4) | 0b1000 | ((v & 0x7000) >> 12)];
+      ptrnTableTileHigh = readMemory(((ppuCtrl & 0b10000) << 8) | (nameTableByte << 4) | 0b1000 | ((v & 0x7000) >> 12));
       break;
     case 0: {
-      lowBGShiftRegister &= 0xFF;
-      lowBGShiftRegister |= (ptrnTableTileLow << 8);
-      highBGShiftRegister &= 0xFF;
-      highBGShiftRegister |= (ptrnTableTileHigh << 8);
+      lowBGShiftRegister &= 0xFF00;
+      lowBGShiftRegister |= ptrnTableTileLow;
+      highBGShiftRegister &= 0xFF00;
+      highBGShiftRegister |= ptrnTableTileHigh;
 
       if (isRendering()) {
         if ((v & 0b11111) == 31) {
@@ -192,9 +281,8 @@ void PPU::handleSpriteEvaluation() {
       spriteIndex = 0;
       break;
     case 1 ... 64:
-      if (cycle % 2) {
+      if ((cycle % 2) == 0)
         secondaryOam[cycle / 2 - 1] = 0xFF;
-      }
       break;
     case 65 ... 256:
       evaluateSpriteForNextClock();
@@ -220,6 +308,10 @@ void PPU::evaluateSpriteForNextClock() {
   static int copy{};
   static bool end{};
   static int m{};
+
+  if (!isRendering()) {
+    return;
+  }
 
   if (cycle == 65) {
     temp = 0;
@@ -298,7 +390,16 @@ void PPU::renderNextScanlineSprite(int index) {
   int row{ scanline - yPos };
   int ptrnTableLow;
   int ptrnTableHigh;
-  int sprite0{ patternIndex == 0 ? 1 : 0 };
+  int sprite0{
+    secondaryOam[index * 4 + 0] == oam[0] &&
+    secondaryOam[index * 4 + 1] == oam[1] &&
+    secondaryOam[index * 4 + 2] == oam[2] &&
+    secondaryOam[index * 4 + 3] == oam[3]
+  };
+
+  if (row < 0) {
+    return;
+  }
 
   if (ppuCtrl & 0b0010'0000) { // Sprite is 8x16
     int bank{ patternIndex & 0b1 };
@@ -306,49 +407,49 @@ void PPU::renderNextScanlineSprite(int index) {
 
     if (attr & 0b1000'0000) { // Sprite is flipped vertically
       if (row >= 8) {
-        ptrnTableLow = memory[(bank << 12) | (tileNumber << 4) | (15 - row)];
-        ptrnTableHigh = memory[(bank << 12) | (tileNumber << 4) | 0b1000 | (15 - row)];
+        ptrnTableLow = readMemory((bank << 12) | (tileNumber << 4) | (15 - row));
+        ptrnTableHigh = readMemory((bank << 12) | (tileNumber << 4) | 0b1000 | (15 - row));
       } else {
-        ptrnTableLow = memory[(bank << 12) | ((tileNumber + 1) << 4) | (7 - row)];
-        ptrnTableHigh = memory[(bank << 12) | ((tileNumber + 1) << 4) | 0b1000 | (7 - row)];
+        ptrnTableLow = readMemory((bank << 12) | ((tileNumber + 1) << 4) | (7 - row));
+        ptrnTableHigh = readMemory((bank << 12) | ((tileNumber + 1) << 4) | 0b1000 | (7 - row));
       }
     } else {
       if (row >= 8) {
-        ptrnTableLow = memory[(bank << 12) | ((tileNumber + 1) << 4) | (row - 8)];
-        ptrnTableHigh = memory[(bank << 12) | ((tileNumber + 1) << 4) | 0b1000 | (row - 8)];
+        ptrnTableLow = readMemory((bank << 12) | ((tileNumber + 1) << 4) | (row - 8));
+        ptrnTableHigh = readMemory((bank << 12) | ((tileNumber + 1) << 4) | 0b1000 | (row - 8));
       } else {
-        ptrnTableLow = memory[(bank << 12) | (tileNumber << 4) | row];
-        ptrnTableHigh = memory[(bank << 12) | (tileNumber << 4) | 0b1000 | row];
+        ptrnTableLow = readMemory((bank << 12) | (tileNumber << 4) | row);
+        ptrnTableHigh = readMemory((bank << 12) | (tileNumber << 4) | 0b1000 | row);
       }
     }
   } else {
     if (attr & 0b1000'0000) { // Sprite is flipped vertically
-      ptrnTableLow = memory[((ppuCtrl & 0b1000) << 9) | (patternIndex << 4) | (7 - row)];
-      ptrnTableHigh = memory[((ppuCtrl & 0b1000) << 9) | (patternIndex << 4) | 0b1000 | (7 - row)];
+      ptrnTableLow = readMemory(((ppuCtrl & 0b1000) << 9) | (patternIndex << 4) | (7 - row));
+      ptrnTableHigh = readMemory(((ppuCtrl & 0b1000) << 9) | (patternIndex << 4) | 0b1000 | (7 - row));
     } else {
-      ptrnTableLow = memory[((ppuCtrl & 0b1000) << 9) | (patternIndex << 4) | row];
-      ptrnTableHigh = memory[((ppuCtrl & 0b1000) << 9) | (patternIndex << 4) | 0b1000 | row];
+      ptrnTableLow = readMemory(((ppuCtrl & 0b1000) << 9) | (patternIndex << 4) | row);
+      ptrnTableHigh = readMemory(((ppuCtrl & 0b1000) << 9) | (patternIndex << 4) | 0b1000 | row);
     }
   }
 
   if (attr & 0b0100'0000) { // Sprite is flipped horizontally
-    for (int i{xPos + 7}; i >= xPos; i--) {
+    for (int i{xPos}; i <= xPos + 7; i++) {
       if (i >= spritePixelData.size()) {
-        ptrnTableLow >>= 1;
-        ptrnTableHigh >>= 1;
+        return;
       }
-      if (spritePixelData[i] == 0) {
-        spritePixelData[i] = 0x90  | ((attr & 0b0010'0000) << 1) | (sprite0 << 5) | ((attr & 0b11) << 2) | ((ptrnTableLow & 0b1) * 1 + (ptrnTableHigh & 0b1) * 2);
+      if ((spritePixelData[i] & 0b11) == 0) {
+        spritePixelData[i] = 0x90 | ((attr & 0b0010'0000) << 1) | (sprite0 << 5) | ((attr & 0b11) << 2) | ((ptrnTableLow & 0b1) * 1 + (ptrnTableHigh & 0b1) * 2);
       }
       ptrnTableLow >>= 1;
       ptrnTableHigh >>= 1;
     }
   } else {
-    for (int i{xPos}; i <= xPos + 7; i++) {
+    for (int i{xPos + 7}; i >= xPos; i--) {
       if (i >= spritePixelData.size()) {
-        return;
+        ptrnTableLow >>= 1;
+        ptrnTableHigh >>= 1;
       }
-      if (spritePixelData[i] == 0) {
+      if ((spritePixelData[i] & 0b11) == 0) {
         spritePixelData[i] = 0x90 | ((attr & 0b0010'0000) << 1) | (sprite0 << 5) | ((attr & 0b11) << 2) | ((ptrnTableLow & 0b1) * 1 + (ptrnTableHigh & 0b1) * 2);
       }
       ptrnTableLow >>= 1;
@@ -374,8 +475,8 @@ void PPU::handleDraw(bool render) {
   static word colorMemAddr{};
 
   if (!render) {
-    lowBGShiftRegister = lowBGShiftRegister >> 1;
-    highBGShiftRegister = highBGShiftRegister >> 1;
+    lowBGShiftRegister <<= 1;
+    highBGShiftRegister <<= 1;
     return;
   }
 
@@ -384,11 +485,11 @@ void PPU::handleDraw(bool render) {
     attrQueue.pop();
   }
 
-  low = (lowBGShiftRegister & (0b1 << x)) >> x;
-  high = (highBGShiftRegister & (0b1 << x)) >> x;
+  low = (lowBGShiftRegister & (0x8000 >> x)) >> (15 - x);
+  high = (highBGShiftRegister & (0x8000 >> x)) >> (15 - x);
   bgPixelValue = low * 1 + high * 2;
-  attrOffset = (scanline % 32) / 16 * 2 + (cycle - 1) % 32 / 16;
-  bgAttr = attr & (0b11 << attrOffset) >> attrOffset;
+  attrOffset = ((scanline % 32) / 16 * 2 + ((cycle - 1) % 32) / 16) * 2;
+  bgAttr = (attr & (0b11 << attrOffset)) >> attrOffset;
   bgColorMemAddr = 0x3F00 | (bgAttr << 2) | bgPixelValue;
 
   priority = (spritePixelData[cycle - 1] & 0b0100'0000) >> 6;
@@ -405,6 +506,10 @@ void PPU::handleDraw(bool render) {
     bgColorMemAddr = 0x3F00;
   }
 
+  if (scanline == 120 && cycle == 10) {
+    int i{};
+  }
+
   if (((ppuMask & 0b1000) > 0) && ((ppuMask & 0b1'0000) > 0)) { // Both background and sprite are rendered
     // Rendering Priority Routine
     if ((bgPixelValue == 0) && (spritePixelValue == 0)) {
@@ -415,12 +520,12 @@ void PPU::handleDraw(bool render) {
       colorMemAddr = bgColorMemAddr;
     } else if ((bgPixelValue > 0) && (spritePixelValue > 0) && (priority == 0)) {
       if (spritePixelData[cycle - 1] & 0b0010'0000) {
-        ppuMask |= 0b0100'0000;
+        ppuStatus |= 0b0100'0000;
       }
       colorMemAddr = spriteColorMemArr;
     } else if ((bgPixelValue > 0) && (spritePixelValue > 0) && (priority == 1)) {
       if (spritePixelData[cycle - 1] & 0b0010'0000) {
-        ppuMask |= 0b0100'0000;
+        ppuStatus |= 0b0100'0000;
       }
       colorMemAddr = bgColorMemAddr;
     } else {
@@ -434,9 +539,10 @@ void PPU::handleDraw(bool render) {
     colorMemAddr = 0x3F00;
   }
 
-  display.drawPixel(cycle - 1, scanline, memory[colorMemAddr]);
-  lowBGShiftRegister = lowBGShiftRegister >> 1;
-  highBGShiftRegister = highBGShiftRegister >> 1;
+  byte color{ readMemory(colorMemAddr) };
+  display.drawPixel(cycle - 1, scanline, ppuMask & 0b1 ? (color & 0x30) : color );
+  lowBGShiftRegister <<= 1;
+  highBGShiftRegister <<= 1;
 }
 
 
@@ -456,6 +562,8 @@ byte PPU::readPPUStatus() {
   byte temp{ ppuStatus };
   clearBit(ppuStatus, 7, 7);
   w = 0;
+  if (scanline == 240 && cycle == 340)
+    disableNextNMI = true;
   return temp;
 }
 
@@ -464,10 +572,11 @@ void PPU::writeOAMAddr(byte val) {
 }
 
 byte PPU::readOAMData() const {
-  if ((1 <= cycle && cycle <= 64) && (0 <= scanline && scanline <= 239)) {
+  if (isRendering() && (1 <= cycle && cycle <= 64) && (0 <= scanline && scanline <= 239)) {
     return 0xFF;
   }
-  return oam[oamAddr];
+
+  return oamAddr % 4 == 2 ? oam[oamAddr] & 0b1110'0011 : oam[oamAddr];
 }
 
 void PPU::writeOAMData(byte val) {
@@ -503,17 +612,17 @@ void PPU::writePPUAddr(byte val) {
 byte PPU::readPPUData() {
   static byte buffer{};
   byte temp{ buffer };
-  buffer = memory[v];
+  buffer = readMemory(v);
   v += extractBit(ppuCtrl, 2, 2) ? 32 : 1;
   return temp;
 }
 
 void PPU::writePPUData(byte val) {
-  memory[v] = val;
+  writeMemory(v, val);
   v += extractBit(ppuCtrl, 2, 2) ? 32 : 1;
 }
 
-void PPU::writeOAMDma(std::vector<byte>& cpuMem, int input) {
+void PPU::writeOAMDma(std::vector<byte>& cpuMem, byte input) {
   uint8_t writeAddr{ oamAddr };
   for (int i{ input * 16 * 16 }; i <= input * 16 * 16 + 255; i++) {
     oam[writeAddr] = cpuMem[i];
@@ -523,4 +632,12 @@ void PPU::writeOAMDma(std::vector<byte>& cpuMem, int input) {
 
 bool PPU::isRendering() const {
   return (ppuMask & 0b0001'0000) > 0 || (ppuMask & 0b0000'1000) > 0;
+}
+
+byte PPU::readPPUStatusNoSideEffect() const {
+  return ppuStatus;
+}
+
+byte PPU::readPPUCtrlNoSideEffect() const {
+  return ppuCtrl;
 }

@@ -1,3 +1,5 @@
+.idea/
 Catch2/
 SDL2/
 SDL2_image/
+cmake-build-debug/
