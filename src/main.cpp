@@ -79,7 +79,7 @@ int main(int argv, char** args) {
   CPU cpu{ppu, inputHandler};
   Initializer initializer{cpu, ppu};
 
-  std::string res{ initializer.loadFile("../test_rom/kungfu.nes") };
+  std::string res{ initializer.loadFile("../test_rom/supermariobros.nes") };
   if (!res.empty()) {
     printf("Error: %s\n", res.c_str());
   }

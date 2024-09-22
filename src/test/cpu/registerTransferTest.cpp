@@ -10,7 +10,7 @@ TEST_CASE("TAX") {
   CPU cpu{nullptr};
   cpu.programCounter = 0xF000;
 
-  byte input8 = GENERATE(0, 0x12, 0xFF);
+  Byte input8 = GENERATE(0, 0x12, 0xFF);
   cpu.accumulator = input8;
 
   cpu.memory[0xF000] = 0xAA;
@@ -42,7 +42,7 @@ TEST_CASE("TAY") {
   CPU cpu{nullptr};
   cpu.programCounter = 0xF000;
 
-  byte input8 = GENERATE(0, 0x12, 0xFF);
+  Byte input8 = GENERATE(0, 0x12, 0xFF);
   cpu.accumulator = input8;
 
   cpu.memory[0xF000] = 0xA8;
@@ -74,7 +74,7 @@ TEST_CASE("TXA") {
   CPU cpu{nullptr};
   cpu.programCounter = 0xF000;
 
-  byte input8 = GENERATE(0, 0x12, 0xFF);
+  Byte input8 = GENERATE(0, 0x12, 0xFF);
   cpu.x = input8;
 
   cpu.memory[0xF000] = 0x8A;
@@ -106,7 +106,7 @@ TEST_CASE("TYA") {
   CPU cpu{nullptr};
   cpu.programCounter = 0xF000;
 
-  byte input8 = GENERATE(0, 0x12, 0xFF);
+  Byte input8 = GENERATE(0, 0x12, 0xFF);
   cpu.y = input8;
 
   cpu.memory[0xF000] = 0x98;

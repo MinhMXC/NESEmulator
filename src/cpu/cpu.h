@@ -28,7 +28,7 @@ public:
   void executeNextClock();
 
   uint64_t totalCycle;
-  std::vector<byte> memory;
+  std::vector<Byte> memory;
 private:
   PPU& ppu;
   InputHandler& inputHandler;
@@ -56,11 +56,11 @@ private:
   };
 
   // Registers
-  word programCounter;
-  byte stackPointer;
-  byte accumulator;
-  byte x;
-  byte y;
+  Word programCounter;
+  Byte stackPointer;
+  Byte accumulator;
+  Byte x;
+  Byte y;
 
   // Flags
   bool carry;
@@ -75,59 +75,59 @@ private:
   int cycle;
 
   // Main Operation
-  bool executeOp(byte op, byte arg1, byte arg2);
+  bool executeOp(Byte op, Byte arg1, Byte arg2);
 
   // Addressing Mode
-  byte readImmediate(byte arg1, byte arg2);
-  byte readZeroPage(byte arg1, byte arg2);
-  byte readZeroPageX(byte arg1, byte arg2);
-  byte readZeroPageY(byte arg1, byte arg2);
-  int8_t readRelative(byte arg1, byte arg2);
-  byte readAbsolute(byte arg1, byte arg2);
-  byte readAbsoluteX(byte arg1, byte arg2);
-  byte readAbsoluteY(byte arg1, byte arg2);
-  byte readIndexedIndirect(byte arg1, byte arg2);
-  byte readIndirectIndexed(byte arg1, byte arg2);
-  byte readAbsoluteXNoCycle(byte arg1, byte arg2);
+  Byte readImmediate(Byte arg1, Byte arg2);
+  Byte readZeroPage(Byte arg1, Byte arg2);
+  Byte readZeroPageX(Byte arg1, Byte arg2);
+  Byte readZeroPageY(Byte arg1, Byte arg2);
+  int8_t readRelative(Byte arg1, Byte arg2);
+  Byte readAbsolute(Byte arg1, Byte arg2);
+  Byte readAbsoluteX(Byte arg1, Byte arg2);
+  Byte readAbsoluteY(Byte arg1, Byte arg2);
+  Byte readIndexedIndirect(Byte arg1, Byte arg2);
+  Byte readIndirectIndexed(Byte arg1, Byte arg2);
+  Byte readAbsoluteXNoCycle(Byte arg1, Byte arg2);
 
-  void writeZeroPage(byte arg1, byte arg2, byte input);
-  void writeZeroPageX(byte arg1, byte arg2, byte input);
-  void writeZeroPageY(byte arg1, byte arg2, byte input);
-  void writeAbsolute(byte arg1, byte arg2, byte input);
-  void writeAbsoluteX(byte arg1, byte arg2, byte input);
-  void writeAbsoluteY(byte arg1, byte arg2, byte input);
-  void writeIndexedIndirect(byte arg1, byte arg2, byte input);
-  void writeIndirectIndexed(byte arg1, byte arg2, byte input);
+  void writeZeroPage(Byte arg1, Byte arg2, Byte input);
+  void writeZeroPageX(Byte arg1, Byte arg2, Byte input);
+  void writeZeroPageY(Byte arg1, Byte arg2, Byte input);
+  void writeAbsolute(Byte arg1, Byte arg2, Byte input);
+  void writeAbsoluteX(Byte arg1, Byte arg2, Byte input);
+  void writeAbsoluteY(Byte arg1, Byte arg2, Byte input);
+  void writeIndexedIndirect(Byte arg1, Byte arg2, Byte input);
+  void writeIndirectIndexed(Byte arg1, Byte arg2, Byte input);
 
   // Helper
-  byte readMemory(word addr);
-  void writeMemory(word addr, byte input);
-  [[nodiscard]] byte convertFlag() const;
-  void writeFlag(byte input);
+  Byte readMemory(Word addr);
+  void writeMemory(Word addr, Byte input);
+  [[nodiscard]] Byte convertFlag() const;
+  void writeFlag(Byte input);
 
   // OP Handler
-  void handleLDA(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte));
-  void handleLDX(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte));
-  void handleLDY(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte));
-  void handleSTA(byte arg1, byte arg2, void (CPU::*writeFn)(byte, byte, byte));
-  void handleSTX(byte arg1, byte arg2, void (CPU::*writeFn)(byte, byte, byte));
-  void handleSTY(byte arg1, byte arg2, void (CPU::*writeFn)(byte, byte, byte));
-  void handleBranch(byte arg, bool flag);
-  void handleASL(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte), void (CPU::*writeFn)(byte, byte, byte));
-  void handleLSR(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte), void (CPU::*writeFn)(byte, byte, byte));
-  void handleROL(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte), void (CPU::*writeFn)(byte, byte, byte));
-  void handleROR(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte), void (CPU::*writeFn)(byte, byte, byte));
-  void handleINC(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte), void (CPU::*writeFn)(byte, byte, byte));
-  void handleDEC(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte), void (CPU::*writeFn)(byte, byte, byte));
-  void handleADC(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte));
-  void handleSBC(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte));
-  void handleCMP(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte));
-  void handleCPX(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte));
-  void handleCPY(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte));
-  void handleAND(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte));
-  void handleEOR(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte));
-  void handleORA(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte));
-  void handleBIT(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte));
+  void handleLDA(Byte arg1, Byte arg2, Byte (CPU::*readFn)(Byte, Byte));
+  void handleLDX(Byte arg1, Byte arg2, Byte (CPU::*readFn)(Byte, Byte));
+  void handleLDY(Byte arg1, Byte arg2, Byte (CPU::*readFn)(Byte, Byte));
+  void handleSTA(Byte arg1, Byte arg2, void (CPU::*writeFn)(Byte, Byte, Byte));
+  void handleSTX(Byte arg1, Byte arg2, void (CPU::*writeFn)(Byte, Byte, Byte));
+  void handleSTY(Byte arg1, Byte arg2, void (CPU::*writeFn)(Byte, Byte, Byte));
+  void handleBranch(Byte arg, bool flag);
+  void handleASL(Byte arg1, Byte arg2, Byte (CPU::*readFn)(Byte, Byte), void (CPU::*writeFn)(Byte, Byte, Byte));
+  void handleLSR(Byte arg1, Byte arg2, Byte (CPU::*readFn)(Byte, Byte), void (CPU::*writeFn)(Byte, Byte, Byte));
+  void handleROL(Byte arg1, Byte arg2, Byte (CPU::*readFn)(Byte, Byte), void (CPU::*writeFn)(Byte, Byte, Byte));
+  void handleROR(Byte arg1, Byte arg2, Byte (CPU::*readFn)(Byte, Byte), void (CPU::*writeFn)(Byte, Byte, Byte));
+  void handleINC(Byte arg1, Byte arg2, Byte (CPU::*readFn)(Byte, Byte), void (CPU::*writeFn)(Byte, Byte, Byte));
+  void handleDEC(Byte arg1, Byte arg2, Byte (CPU::*readFn)(Byte, Byte), void (CPU::*writeFn)(Byte, Byte, Byte));
+  void handleADC(Byte arg1, Byte arg2, Byte (CPU::*readFn)(Byte, Byte));
+  void handleSBC(Byte arg1, Byte arg2, Byte (CPU::*readFn)(Byte, Byte));
+  void handleCMP(Byte arg1, Byte arg2, Byte (CPU::*readFn)(Byte, Byte));
+  void handleCPX(Byte arg1, Byte arg2, Byte (CPU::*readFn)(Byte, Byte));
+  void handleCPY(Byte arg1, Byte arg2, Byte (CPU::*readFn)(Byte, Byte));
+  void handleAND(Byte arg1, Byte arg2, Byte (CPU::*readFn)(Byte, Byte));
+  void handleEOR(Byte arg1, Byte arg2, Byte (CPU::*readFn)(Byte, Byte));
+  void handleORA(Byte arg1, Byte arg2, Byte (CPU::*readFn)(Byte, Byte));
+  void handleBIT(Byte arg1, Byte arg2, Byte (CPU::*readFn)(Byte, Byte));
 };
 
 #endif

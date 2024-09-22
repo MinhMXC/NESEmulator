@@ -11,8 +11,8 @@ TEST_CASE("ADC") {
   CPU cpu{nullptr};
   cpu.programCounter = 0xF000;
 
-  byte input8 = GENERATE(0, 0x12, 0xFF);
-  byte input16 = GENERATE(0xF, 0xFF, 0x123);
+  Byte input8 = GENERATE(0, 0x12, 0xFF);
+  Byte input16 = GENERATE(0xF, 0xFF, 0x123);
   cpu.carry = GENERATE(true, false);
 
   SECTION("Immediate") {
@@ -28,7 +28,7 @@ TEST_CASE("ADC") {
     CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 2);
 
-    CHECK(cpu.accumulator == static_cast<byte>(expected));
+    CHECK(cpu.accumulator == static_cast<Byte>(expected));
     CHECKED_IF(expected > 0xFF) {
       CHECK(cpu.carry == true);
     }
@@ -65,7 +65,7 @@ TEST_CASE("ADC") {
     CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 3);
 
-    CHECK(cpu.accumulator == static_cast<byte>(expected));
+    CHECK(cpu.accumulator == static_cast<Byte>(expected));
     CHECKED_IF(expected > 0xFF) {
       CHECK(cpu.carry == true);
     }
@@ -91,7 +91,7 @@ TEST_CASE("ADC") {
   SECTION("Zero Page X") {
     cpu.x = 1;
     cpu.accumulator = input8;
-    cpu.memory[static_cast<byte>(input8 + cpu.x)] = input8;
+    cpu.memory[static_cast<Byte>(input8 + cpu.x)] = input8;
     const int expected{ cpu.accumulator + input8 + cpu.carry };
 
     cpu.memory[0xF000] = 0x75;
@@ -103,7 +103,7 @@ TEST_CASE("ADC") {
     CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 4);
 
-    CHECK(cpu.accumulator == static_cast<byte>(expected));
+    CHECK(cpu.accumulator == static_cast<Byte>(expected));
     CHECKED_IF(expected > 0xFF) {
       CHECK(cpu.carry == true);
     }
@@ -140,7 +140,7 @@ TEST_CASE("ADC") {
     CHECK(cpu.programCounter == 0xF003);
     CHECK(cpu.cycle == 4);
 
-    CHECK(cpu.accumulator == static_cast<byte>(expected));
+    CHECK(cpu.accumulator == static_cast<Byte>(expected));
     CHECKED_IF(expected > 0xFF) {
       CHECK(cpu.carry == true);
     }
@@ -185,7 +185,7 @@ TEST_CASE("ADC") {
       CHECK(cpu.cycle == 4);
     }
 
-    CHECK(cpu.accumulator == static_cast<byte>(expected));
+    CHECK(cpu.accumulator == static_cast<Byte>(expected));
     CHECKED_IF(expected > 0xFF) {
       CHECK(cpu.carry == true);
     }
@@ -230,7 +230,7 @@ TEST_CASE("ADC") {
       CHECK(cpu.cycle == 4);
     }
 
-    CHECK(cpu.accumulator == static_cast<byte>(expected));
+    CHECK(cpu.accumulator == static_cast<Byte>(expected));
     CHECKED_IF(expected > 0xFF) {
       CHECK(cpu.carry == true);
     }
@@ -256,8 +256,8 @@ TEST_CASE("ADC") {
   SECTION("Indexed Indirect") {
     cpu.x = 1;
     cpu.accumulator = input8;
-    cpu.memory[static_cast<byte>(input8 + cpu.x)] = input16;
-    cpu.memory[static_cast<byte>(input8 + cpu.x + 1)] = input16 >> 8;
+    cpu.memory[static_cast<Byte>(input8 + cpu.x)] = input16;
+    cpu.memory[static_cast<Byte>(input8 + cpu.x + 1)] = input16 >> 8;
     cpu.writeMemory(input16, input8);
     const int expected{ cpu.accumulator + input8 + cpu.carry };
 
@@ -270,7 +270,7 @@ TEST_CASE("ADC") {
     CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 6);
 
-    CHECK(cpu.accumulator == static_cast<byte>(expected));
+    CHECK(cpu.accumulator == static_cast<Byte>(expected));
     CHECKED_IF(expected > 0xFF) {
       CHECK(cpu.carry == true);
     }
@@ -296,8 +296,8 @@ TEST_CASE("ADC") {
   SECTION("Indirect Indexed") {
     cpu.y = 1;
     cpu.accumulator = input8;
-    cpu.memory[static_cast<byte>(input8)] = input16;
-    cpu.memory[static_cast<byte>(input8 + 1)] = input16 >> 8;
+    cpu.memory[static_cast<Byte>(input8)] = input16;
+    cpu.memory[static_cast<Byte>(input8 + 1)] = input16 >> 8;
     cpu.writeMemory(input16 + cpu.y, input8);
     const int expected{ cpu.accumulator + input8 + cpu.carry };
 
@@ -317,7 +317,7 @@ TEST_CASE("ADC") {
       CHECK(cpu.cycle == 5);
     }
 
-    CHECK(cpu.accumulator == static_cast<byte>(expected));
+    CHECK(cpu.accumulator == static_cast<Byte>(expected));
     CHECKED_IF(expected > 0xFF) {
       CHECK(cpu.carry == true);
     }
@@ -345,14 +345,14 @@ TEST_CASE("SBC") {
   CPU cpu{nullptr};
   cpu.programCounter = 0xF000;
 
-  byte input8 = GENERATE(0, 0x12, 0xFF);
-  byte input16 = GENERATE(0xF, 0xFF, 0x123);
+  Byte input8 = GENERATE(0, 0x12, 0xFF);
+  Byte input16 = GENERATE(0xF, 0xFF, 0x123);
   cpu.carry = GENERATE(true, false);
 
   SECTION("Immediate") {
     cpu.accumulator = input8;
     const int res{ cpu.accumulator - input8 - cpu.carry };
-    const byte expected{ static_cast<byte>(cpu.accumulator - input8 - cpu.carry) };
+    const Byte expected{static_cast<Byte>(cpu.accumulator - input8 - cpu.carry) };
 
     cpu.memory[0xF000] = 0xE9;
     cpu.memory[0xF001] = input8;
@@ -390,7 +390,7 @@ TEST_CASE("SBC") {
     cpu.accumulator = input8;
     cpu.memory[input8] = input8;
     const int res{ cpu.accumulator - input8 - cpu.carry };
-    const byte expected{ static_cast<byte>(cpu.accumulator - input8 - cpu.carry) };
+    const Byte expected{static_cast<Byte>(cpu.accumulator - input8 - cpu.carry) };
 
     cpu.memory[0xF000] = 0xE5;
     cpu.memory[0xF001] = input8;
@@ -401,7 +401,7 @@ TEST_CASE("SBC") {
     CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 3);
 
-    CHECK(cpu.accumulator == static_cast<byte>(expected));
+    CHECK(cpu.accumulator == static_cast<Byte>(expected));
     CHECKED_IF(res < 0) {
       CHECK(cpu.carry == true);
     }
@@ -427,9 +427,9 @@ TEST_CASE("SBC") {
   SECTION("Zero Page X") {
     cpu.x = 1;
     cpu.accumulator = input8;
-    cpu.memory[static_cast<byte>(input8 + cpu.x)] = input8;
+    cpu.memory[static_cast<Byte>(input8 + cpu.x)] = input8;
     const int res{ cpu.accumulator - input8 - cpu.carry };
-    const byte expected{ static_cast<byte>(cpu.accumulator - input8 - cpu.carry) };
+    const Byte expected{static_cast<Byte>(cpu.accumulator - input8 - cpu.carry) };
 
     cpu.memory[0xF000] = 0xF5;
     cpu.memory[0xF001] = input8;
@@ -440,7 +440,7 @@ TEST_CASE("SBC") {
     CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 4);
 
-    CHECK(cpu.accumulator == static_cast<byte>(expected));
+    CHECK(cpu.accumulator == static_cast<Byte>(expected));
     CHECKED_IF(res < 0) {
       CHECK(cpu.carry == true);
     }
@@ -467,7 +467,7 @@ TEST_CASE("SBC") {
     cpu.accumulator = input8;
     cpu.writeMemory(input16, input8);
     const int res{ cpu.accumulator - input8 - cpu.carry };
-    const byte expected{ static_cast<byte>(cpu.accumulator - input8 - cpu.carry) };
+    const Byte expected{static_cast<Byte>(cpu.accumulator - input8 - cpu.carry) };
 
     cpu.memory[0xF000] = 0xED;
     cpu.memory[0xF001] = input16;
@@ -478,7 +478,7 @@ TEST_CASE("SBC") {
     CHECK(cpu.programCounter == 0xF003);
     CHECK(cpu.cycle == 4);
 
-    CHECK(cpu.accumulator == static_cast<byte>(expected));
+    CHECK(cpu.accumulator == static_cast<Byte>(expected));
     CHECKED_IF(res < 0) {
       CHECK(cpu.carry == true);
     }
@@ -506,7 +506,7 @@ TEST_CASE("SBC") {
     cpu.accumulator = input8;
     cpu.writeMemory(input16 + cpu.x, input8);
     const int res{ cpu.accumulator - input8 - cpu.carry };
-    const byte expected{ static_cast<byte>(cpu.accumulator - input8 - cpu.carry) };
+    const Byte expected{static_cast<Byte>(cpu.accumulator - input8 - cpu.carry) };
 
     cpu.memory[0xF000] = 0xFD;
     cpu.memory[0xF001] = input16;
@@ -524,7 +524,7 @@ TEST_CASE("SBC") {
       CHECK(cpu.cycle == 4);
     }
 
-    CHECK(cpu.accumulator == static_cast<byte>(expected));
+    CHECK(cpu.accumulator == static_cast<Byte>(expected));
     CHECKED_IF(res < 0) {
       CHECK(cpu.carry == true);
     }
@@ -552,7 +552,7 @@ TEST_CASE("SBC") {
     cpu.accumulator = input8;
     cpu.writeMemory(input16 + cpu.y, input8);
     const int res{ cpu.accumulator - input8 - cpu.carry };
-    const byte expected{ static_cast<byte>(cpu.accumulator - input8 - cpu.carry) };
+    const Byte expected{static_cast<Byte>(cpu.accumulator - input8 - cpu.carry) };
 
     cpu.memory[0xF000] = 0xF9;
     cpu.memory[0xF001] = input16;
@@ -570,7 +570,7 @@ TEST_CASE("SBC") {
       CHECK(cpu.cycle == 4);
     }
 
-    CHECK(cpu.accumulator == static_cast<byte>(expected));
+    CHECK(cpu.accumulator == static_cast<Byte>(expected));
     CHECKED_IF(res < 0) {
       CHECK(cpu.carry == true);
     }
@@ -596,11 +596,11 @@ TEST_CASE("SBC") {
   SECTION("Indexed Indirect") {
     cpu.x = 1;
     cpu.accumulator = input8;
-    cpu.memory[static_cast<byte>(input8 + cpu.x)] = input16;
-    cpu.memory[static_cast<byte>(input8 + cpu.x + 1)] = input16 >> 8;
+    cpu.memory[static_cast<Byte>(input8 + cpu.x)] = input16;
+    cpu.memory[static_cast<Byte>(input8 + cpu.x + 1)] = input16 >> 8;
     cpu.writeMemory(input16, input8);
     const int res{ cpu.accumulator - input8 - cpu.carry };
-    const byte expected{ static_cast<byte>(cpu.accumulator - input8 - cpu.carry) };
+    const Byte expected{static_cast<Byte>(cpu.accumulator - input8 - cpu.carry) };
 
     cpu.memory[0xF000] = 0xE1;
     cpu.memory[0xF001] = input8;
@@ -611,7 +611,7 @@ TEST_CASE("SBC") {
     CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 6);
 
-    CHECK(cpu.accumulator == static_cast<byte>(expected));
+    CHECK(cpu.accumulator == static_cast<Byte>(expected));
     CHECKED_IF(res < 0) {
       CHECK(cpu.carry == true);
     }
@@ -637,11 +637,11 @@ TEST_CASE("SBC") {
   SECTION("Indirect Indexed") {
     cpu.y = 1;
     cpu.accumulator = input8;
-    cpu.memory[static_cast<byte>(input8)] = input16;
-    cpu.memory[static_cast<byte>(input8 + 1)] = input16 >> 8;
+    cpu.memory[static_cast<Byte>(input8)] = input16;
+    cpu.memory[static_cast<Byte>(input8 + 1)] = input16 >> 8;
     cpu.writeMemory(input16 + cpu.y, input8);
     const int res{ cpu.accumulator - input8 - cpu.carry };
-    const byte expected{ static_cast<byte>(cpu.accumulator - input8 - cpu.carry) };
+    const Byte expected{static_cast<Byte>(cpu.accumulator - input8 - cpu.carry) };
 
     cpu.memory[0xF000] = 0xF1;
     cpu.memory[0xF001] = input8;
@@ -659,7 +659,7 @@ TEST_CASE("SBC") {
       CHECK(cpu.cycle == 5);
     }
 
-    CHECK(cpu.accumulator == static_cast<byte>(expected));
+    CHECK(cpu.accumulator == static_cast<Byte>(expected));
     CHECKED_IF(res < 0) {
       CHECK(cpu.carry == true);
     }
@@ -687,14 +687,14 @@ TEST_CASE("CMP") {
   CPU cpu{nullptr};
   cpu.programCounter = 0xF000;
 
-  byte input8 = GENERATE(0, 0x12, 0xFF);
-  byte input16 = GENERATE(0xF, 0xFF, 0x123);
+  Byte input8 = GENERATE(0, 0x12, 0xFF);
+  Byte input16 = GENERATE(0xF, 0xFF, 0x123);
   cpu.carry = GENERATE(true, false);
 
   SECTION("Immediate") {
     cpu.accumulator = input8;
     const int res{ cpu.accumulator - input8 };
-    const byte expected{ static_cast<byte>(cpu.accumulator - input8) };
+    const Byte expected{static_cast<Byte>(cpu.accumulator - input8) };
 
     cpu.memory[0xF000] = 0xC9;
     cpu.memory[0xF001] = input8;
@@ -733,7 +733,7 @@ TEST_CASE("CMP") {
     cpu.accumulator = input8;
     cpu.memory[input8] = input8;
     const int res{ cpu.accumulator - input8 };
-    const byte expected{ static_cast<byte>(cpu.accumulator - input8) };
+    const Byte expected{static_cast<Byte>(cpu.accumulator - input8) };
 
     cpu.memory[0xF000] = 0xC5;
     cpu.memory[0xF001] = input8;
@@ -772,9 +772,9 @@ TEST_CASE("CMP") {
   SECTION("Zero Page X") {
     cpu.x = 1;
     cpu.accumulator = input8;
-    cpu.memory[static_cast<byte>(input8 + cpu.x)] = input8;
+    cpu.memory[static_cast<Byte>(input8 + cpu.x)] = input8;
     const int res{ cpu.accumulator - input8 };
-    const byte expected{ static_cast<byte>(cpu.accumulator - input8) };
+    const Byte expected{static_cast<Byte>(cpu.accumulator - input8) };
 
     cpu.memory[0xF000] = 0xD5;
     cpu.memory[0xF001] = input8;
@@ -786,7 +786,7 @@ TEST_CASE("CMP") {
     CHECK(cpu.cycle == 4);
 
     CHECK(cpu.accumulator == input8);
-    CHECK(cpu.readMemory(static_cast<byte>(input8 + cpu.x)) == input8);
+    CHECK(cpu.readMemory(static_cast<Byte>(input8 + cpu.x)) == input8);
 
     CHECKED_IF(res >= 0) {
       CHECK(cpu.carry == true);
@@ -814,7 +814,7 @@ TEST_CASE("CMP") {
     cpu.accumulator = input8;
     cpu.writeMemory(input16, input8);
     const int res{ cpu.accumulator - input8 };
-    const byte expected{ static_cast<byte>(cpu.accumulator - input8) };
+    const Byte expected{static_cast<Byte>(cpu.accumulator - input8) };
 
     cpu.memory[0xF000] = 0xCD;
     cpu.memory[0xF001] = input16;
@@ -855,7 +855,7 @@ TEST_CASE("CMP") {
     cpu.accumulator = input8;
     cpu.writeMemory(input16 + cpu.x, input8);
     const int res{ cpu.accumulator - input8 };
-    const byte expected{ static_cast<byte>(cpu.accumulator - input8) };
+    const Byte expected{static_cast<Byte>(cpu.accumulator - input8) };
 
     cpu.memory[0xF000] = 0xDD;
     cpu.memory[0xF001] = input16;
@@ -903,7 +903,7 @@ TEST_CASE("CMP") {
     cpu.accumulator = input8;
     cpu.writeMemory(input16 + cpu.y, input8);
     const int res{ cpu.accumulator - input8 };
-    const byte expected{ static_cast<byte>(cpu.accumulator - input8) };
+    const Byte expected{static_cast<Byte>(cpu.accumulator - input8) };
 
     cpu.memory[0xF000] = 0xD9;
     cpu.memory[0xF001] = input16;
@@ -949,11 +949,11 @@ TEST_CASE("CMP") {
   SECTION("Indexed Indirect") {
     cpu.x = 1;
     cpu.accumulator = input8;
-    cpu.memory[static_cast<byte>(input8 + cpu.x)] = input16;
-    cpu.memory[static_cast<byte>(input8 + cpu.x + 1)] = input16 >> 8;
+    cpu.memory[static_cast<Byte>(input8 + cpu.x)] = input16;
+    cpu.memory[static_cast<Byte>(input8 + cpu.x + 1)] = input16 >> 8;
     cpu.writeMemory(input16, input8);
     const int res{ cpu.accumulator - input8 };
-    const byte expected{ static_cast<byte>(cpu.accumulator - input8) };
+    const Byte expected{static_cast<Byte>(cpu.accumulator - input8) };
 
     cpu.memory[0xF000] = 0xC1;
     cpu.memory[0xF001] = input8;
@@ -992,11 +992,11 @@ TEST_CASE("CMP") {
   SECTION("Indirect Indexed") {
     cpu.y = 1;
     cpu.accumulator = input8;
-    cpu.memory[static_cast<byte>(input8)] = input16;
-    cpu.memory[static_cast<byte>(input8 + 1)] = input16 >> 8;
+    cpu.memory[static_cast<Byte>(input8)] = input16;
+    cpu.memory[static_cast<Byte>(input8 + 1)] = input16 >> 8;
     cpu.writeMemory(input16 + cpu.y, input8);
     const int res{ cpu.accumulator - input8 };
-    const byte expected{ static_cast<byte>(cpu.accumulator - input8) };
+    const Byte expected{static_cast<Byte>(cpu.accumulator - input8) };
 
     cpu.memory[0xF000] = 0xD1;
     cpu.memory[0xF001] = input8;
@@ -1044,13 +1044,13 @@ TEST_CASE("CMX") {
   CPU cpu{nullptr};
   cpu.programCounter = 0xF000;
 
-  byte input8 = GENERATE(0, 0x12, 0xFF);
-  byte input16 = GENERATE(0xF, 0xFF, 0x123);
+  Byte input8 = GENERATE(0, 0x12, 0xFF);
+  Byte input16 = GENERATE(0xF, 0xFF, 0x123);
 
   SECTION("Immediate") {
     cpu.x = input8;
     const int res{ cpu.x - input8 };
-    const byte expected{ static_cast<byte>(cpu.x - input8) };
+    const Byte expected{static_cast<Byte>(cpu.x - input8) };
 
     cpu.memory[0xF000] = 0xE0;
     cpu.memory[0xF001] = input8;
@@ -1089,7 +1089,7 @@ TEST_CASE("CMX") {
     cpu.x = input8;
     cpu.memory[input8] = input8;
     const int res{ cpu.x - input8 };
-    const byte expected{ static_cast<byte>(cpu.x - input8) };
+    const Byte expected{static_cast<Byte>(cpu.x - input8) };
 
     cpu.memory[0xF000] = 0xE4;
     cpu.memory[0xF001] = input8;
@@ -1129,7 +1129,7 @@ TEST_CASE("CMX") {
     cpu.x = input8;
     cpu.writeMemory(input16, input8);
     const int res{ cpu.x - input8 };
-    const byte expected{ static_cast<byte>(cpu.x - input8) };
+    const Byte expected{static_cast<Byte>(cpu.x - input8) };
 
     cpu.memory[0xF000] = 0xEC;
     cpu.memory[0xF001] = input16;
@@ -1170,13 +1170,13 @@ TEST_CASE("CMY") {
   CPU cpu{nullptr};
   cpu.programCounter = 0xF000;
 
-  byte input8 = GENERATE(0, 0x12, 0xFF);
-  byte input16 = GENERATE(0xF, 0xFF, 0x123);
+  Byte input8 = GENERATE(0, 0x12, 0xFF);
+  Byte input16 = GENERATE(0xF, 0xFF, 0x123);
 
   SECTION("Immediate") {
     cpu.y = input8;
     const int res{ cpu.y - input8 };
-    const byte expected{ static_cast<byte>(cpu.y - input8) };
+    const Byte expected{static_cast<Byte>(cpu.y - input8) };
 
     cpu.memory[0xF000] = 0xC0;
     cpu.memory[0xF001] = input8;
@@ -1215,7 +1215,7 @@ TEST_CASE("CMY") {
     cpu.y = input8;
     cpu.memory[input8] = input8;
     const int res{ cpu.y - input8 };
-    const byte expected{ static_cast<byte>(cpu.y - input8) };
+    const Byte expected{static_cast<Byte>(cpu.y - input8) };
 
     cpu.memory[0xF000] = 0xC4;
     cpu.memory[0xF001] = input8;
@@ -1255,7 +1255,7 @@ TEST_CASE("CMY") {
     cpu.y = input8;
     cpu.writeMemory(input16, input8);
     const int res{ cpu.y - input8 };
-    const byte expected{ static_cast<byte>(cpu.y - input8) };
+    const Byte expected{static_cast<Byte>(cpu.y - input8) };
 
     cpu.memory[0xF000] = 0xCC;
     cpu.memory[0xF001] = input16;

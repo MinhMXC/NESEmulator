@@ -33,7 +33,7 @@ public:
     bool isNES2;
     bool isPal{};
 
-    byte current{};
+    Byte current{};
     int headerIndex{};
     while (file) {
       if (headerIndex == 16)
@@ -43,19 +43,19 @@ public:
       switch(headerIndex) {
         case 0:
           if (current != 'N')
-            return "0th byte is not N";
+            return "0th Byte is not N";
           break;
         case 1:
           if (current != 'E')
-            return "1st byte is not E";
+            return "1st Byte is not E";
           break;
         case 2:
           if (current != 'S')
-            return "2nd byte is not S";
+            return "2nd Byte is not S";
           break;
         case 3:
           if (current != 0x1A)
-            return "3rd byte is not MS-DOS EOF";
+            return "3rd Byte is not MS-DOS EOF";
           break;
         case 4:
           prgRomSize = current;
@@ -137,7 +137,8 @@ public:
         ppu.memory[i] = current;
       }
     } else {
-      return "More than 8KB CHR ROM was specified\n";
+      if (chrRomSize != 0)
+        return "More than 8KB CHR ROM was specified\n";
     }
 
     return "";

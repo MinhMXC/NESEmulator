@@ -2,14 +2,14 @@
 #include <cstdint>
 #include <cstdio>
 
-constexpr byte A        = 0b0000'0001;
-constexpr byte B        = 0b0000'0010;
-constexpr byte SELECT   = 0b0000'0100;
-constexpr byte START    = 0b0000'1000;
-constexpr byte UP       = 0b0001'0000;
-constexpr byte DOWN     = 0b0010'0000;
-constexpr byte LEFT     = 0b0100'0000;
-constexpr byte RIGHT    = 0b1000'0000;
+constexpr Byte A        = 0b0000'0001;
+constexpr Byte B        = 0b0000'0010;
+constexpr Byte SELECT   = 0b0000'0100;
+constexpr Byte START    = 0b0000'1000;
+constexpr Byte UP       = 0b0001'0000;
+constexpr Byte DOWN     = 0b0010'0000;
+constexpr Byte LEFT     = 0b0100'0000;
+constexpr Byte RIGHT    = 0b1000'0000;
 
 InputHandler::InputHandler() : input{}, poll{}, readState{} {}
 
@@ -51,7 +51,7 @@ void InputHandler::handleEvent(SDL_Event& event) {
 }
 
 void InputHandler::handleKeyboardState() {
-  const byte* keyboardState{ SDL_GetKeyboardState(nullptr) };
+  const Byte* keyboardState{SDL_GetKeyboardState(nullptr) };
 
   if (keyboardState[SDL_SCANCODE_Q])
     input |= SELECT;

@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <SDL.h>
 
-typedef uint8_t byte;
+typedef uint8_t Byte;
 
 class InputHandler {
 public:
@@ -19,7 +19,7 @@ public:
 
 private:
   bool poll;
-  byte input;
+  Byte input;
   uint64_t readState{};
 };
 

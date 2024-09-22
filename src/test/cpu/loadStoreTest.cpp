@@ -10,8 +10,8 @@ TEST_CASE("LDA") {
   CPU cpu{nullptr};
   cpu.programCounter = 0xF000;
 
-  byte input8 = GENERATE(0, 0x12, 0xFF);
-  byte input16 = GENERATE(0xF, 0xFF, 0x123);
+  Byte input8 = GENERATE(0, 0x12, 0xFF);
+  Byte input16 = GENERATE(0xF, 0xFF, 0x123);
 
   SECTION("Immediate") {
     cpu.memory[0xF000] = 0xA9;
@@ -78,7 +78,7 @@ TEST_CASE("LDA") {
     CHECK(cpu.programCounter == 2);
     CHECK(cpu.cycle == 4);
 
-    const byte expected{ input8 };
+    const Byte expected{input8 };
     CHECK(cpu.accumulator == expected);
     CHECKED_IF(expected == 0) {
       CHECK(cpu.zero == true);
@@ -106,7 +106,7 @@ TEST_CASE("LDA") {
     CHECK(cpu.programCounter == 3);
     CHECK(cpu.cycle == 4);
 
-    const byte expected{ input8 };
+    const Byte expected{input8 };
     CHECK(cpu.accumulator == expected);
     CHECKED_IF(expected == 0) {
       CHECK(cpu.zero == true);
@@ -141,7 +141,7 @@ TEST_CASE("LDA") {
       CHECK(cpu.cycle == 4);
     }
 
-    const byte expected{ input8 };
+    const Byte expected{input8 };
     CHECK(cpu.accumulator == expected);
     CHECKED_IF(expected == 0) {
       CHECK(cpu.zero == true);
@@ -176,7 +176,7 @@ TEST_CASE("LDA") {
       CHECK(cpu.cycle == 4);
     }
 
-    const byte expected{ input8 };
+    const Byte expected{input8 };
     CHECK(cpu.accumulator == expected);
     CHECKED_IF(expected == 0) {
       CHECK(cpu.zero == true);
@@ -195,8 +195,8 @@ TEST_CASE("LDA") {
 
   SECTION("Indirect X") {
     cpu.x = 1;
-    cpu.memory[static_cast<byte>(input8 + cpu.x)] = input16;
-    cpu.memory[static_cast<byte>(input8 + cpu.x + 1)] = input16 >> 8;
+    cpu.memory[static_cast<Byte>(input8 + cpu.x)] = input16;
+    cpu.memory[static_cast<Byte>(input8 + cpu.x + 1)] = input16 >> 8;
     cpu.memory[input16] = input8;
     cpu.memory[0xF000] = 0xA1;
     cpu.memory[0xF001] = input8;
@@ -207,7 +207,7 @@ TEST_CASE("LDA") {
     CHECK(cpu.programCounter == 2);
     CHECK(cpu.cycle == 6);
 
-    const byte expected{ input8 };
+    const Byte expected{input8 };
     CHECK(cpu.accumulator == expected);
     CHECKED_IF(expected == 0) {
       CHECK(cpu.zero == true);
@@ -227,7 +227,7 @@ TEST_CASE("LDA") {
   SECTION("Indirect Y") {
     cpu.y = 1;
     cpu.memory[input8] = input16;
-    cpu.memory[static_cast<byte>(input8 + 1)] = input16 >> 8;
+    cpu.memory[static_cast<Byte>(input8 + 1)] = input16 >> 8;
     cpu.memory[input16 + cpu.y] = input8;
     cpu.memory[0xF000] = 0xB1;
     cpu.memory[0xF001] = input8;
@@ -244,7 +244,7 @@ TEST_CASE("LDA") {
       CHECK(cpu.cycle == 5);
     }
 
-    const byte expected{ input8 };
+    const Byte expected{input8 };
     CHECK(cpu.accumulator == expected);
     CHECKED_IF(expected == 0) {
       CHECK(cpu.zero == true);
@@ -266,8 +266,8 @@ TEST_CASE("LDX") {
   CPU cpu{nullptr};
   cpu.programCounter = 0xF000;
 
-  byte input8 = GENERATE(0, 0x12, 0xFF);
-  byte input16 = GENERATE(0xF, 0xFF, 0x123);
+  Byte input8 = GENERATE(0, 0x12, 0xFF);
+  Byte input16 = GENERATE(0xF, 0xFF, 0x123);
 
   SECTION("Immediate") {
     cpu.memory[0xF000] = 0xA2;
@@ -334,7 +334,7 @@ TEST_CASE("LDX") {
     CHECK(cpu.programCounter == 2);
     CHECK(cpu.cycle == 4);
 
-    const byte expected{ input8 };
+    const Byte expected{input8 };
     CHECK(cpu.x == expected);
     CHECKED_IF(expected == 0) {
       CHECK(cpu.zero == true);
@@ -362,7 +362,7 @@ TEST_CASE("LDX") {
     CHECK(cpu.programCounter == 3);
     CHECK(cpu.cycle == 4);
 
-    const byte expected{ input8 };
+    const Byte expected{input8 };
     CHECK(cpu.x == expected);
     CHECKED_IF(expected == 0) {
       CHECK(cpu.zero == true);
@@ -397,7 +397,7 @@ TEST_CASE("LDX") {
       CHECK(cpu.cycle == 4);
     }
 
-    const byte expected{ input8 };
+    const Byte expected{input8 };
     CHECK(cpu.x == expected);
     CHECKED_IF(expected == 0) {
       CHECK(cpu.zero == true);
@@ -419,8 +419,8 @@ TEST_CASE("LDY") {
   CPU cpu{nullptr};
   cpu.programCounter = 0xF000;
 
-  byte input8 = GENERATE(0, 0x12, 0xFF);
-  byte input16 = GENERATE(0xF, 0xFF, 0x123);
+  Byte input8 = GENERATE(0, 0x12, 0xFF);
+  Byte input16 = GENERATE(0xF, 0xFF, 0x123);
 
   SECTION("Immediate") {
     cpu.memory[0xF000] = 0xA0;
@@ -487,7 +487,7 @@ TEST_CASE("LDY") {
     CHECK(cpu.programCounter == 2);
     CHECK(cpu.cycle == 4);
 
-    const byte expected{ input8 };
+    const Byte expected{input8 };
     CHECK(cpu.y == expected);
     CHECKED_IF(expected == 0) {
       CHECK(cpu.zero == true);
@@ -515,7 +515,7 @@ TEST_CASE("LDY") {
     CHECK(cpu.programCounter == 3);
     CHECK(cpu.cycle == 4);
 
-    const byte expected{ input8 };
+    const Byte expected{input8 };
     CHECK(cpu.y == expected);
     CHECKED_IF(expected == 0) {
       CHECK(cpu.zero == true);
@@ -550,7 +550,7 @@ TEST_CASE("LDY") {
       CHECK(cpu.cycle == 4);
     }
 
-    const byte expected{ input8 };
+    const Byte expected{input8 };
     CHECK(cpu.y == expected);
     CHECKED_IF(expected == 0) {
       CHECK(cpu.zero == true);
@@ -572,8 +572,8 @@ TEST_CASE("STA") {
   CPU cpu{nullptr};
   cpu.programCounter = 0xF000;
 
-  byte input8 = GENERATE(0, 0x12, 0xFF);
-  byte input16 = GENERATE(0xF, 0xFF, 0x123);
+  Byte input8 = GENERATE(0, 0x12, 0xFF);
+  Byte input16 = GENERATE(0xF, 0xFF, 0x123);
 
   cpu.accumulator = input8;
 
@@ -674,8 +674,8 @@ TEST_CASE("STX") {
   CPU cpu{nullptr};
   cpu.programCounter = 0xF000;
 
-  byte input8 = GENERATE(0, 0x12, 0xFF);
-  byte input16 = GENERATE(0xF, 0xFF, 0x123);
+  Byte input8 = GENERATE(0, 0x12, 0xFF);
+  Byte input16 = GENERATE(0xF, 0xFF, 0x123);
 
   cpu.x = input8;
 
@@ -721,8 +721,8 @@ TEST_CASE("STY") {
   CPU cpu{nullptr};
   cpu.programCounter = 0xF000;
 
-  byte input8 = GENERATE(0, 0x12, 0xFF);
-  byte input16 = GENERATE(0xF, 0xFF, 0x123);
+  Byte input8 = GENERATE(0, 0x12, 0xFF);
+  Byte input16 = GENERATE(0xF, 0xFF, 0x123);
 
   cpu.y = input8;
 

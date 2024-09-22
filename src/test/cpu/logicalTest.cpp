@@ -10,12 +10,12 @@ TEST_CASE("AND") {
   CPU cpu{nullptr};
   cpu.programCounter = 0xF000;
 
-  byte input8 = GENERATE(0, 0x12, 0xFF);
-  byte input16 = GENERATE(0xF, 0xFF, 0x123);
+  Byte input8 = GENERATE(0, 0x12, 0xFF);
+  Byte input16 = GENERATE(0xF, 0xFF, 0x123);
 
   SECTION("Immediate") {
     cpu.accumulator = 0x34;
-    byte expected{ static_cast<byte>(cpu.accumulator & input8) };
+    Byte expected{static_cast<Byte>(cpu.accumulator & input8) };
 
     cpu.memory[0xF000] = 0x29;
     cpu.memory[0xF001] = input8;
@@ -45,7 +45,7 @@ TEST_CASE("AND") {
   SECTION("Zero Page") {
     cpu.memory[input8] = input8;
     cpu.accumulator = 0x34;
-    byte expected{ static_cast<byte>(cpu.accumulator & input8) };
+    Byte expected{static_cast<Byte>(cpu.accumulator & input8) };
 
     cpu.memory[0xF000] = 0x25;
     cpu.memory[0xF001] = input8;
@@ -76,7 +76,7 @@ TEST_CASE("AND") {
     cpu.x = 1;
     cpu.memory[(input8 + cpu.x) & 0xFF] = input8;
     cpu.accumulator = 0x34;
-    byte expected{ static_cast<byte>(cpu.accumulator & input8) };
+    Byte expected{static_cast<Byte>(cpu.accumulator & input8) };
 
     cpu.memory[0xF000] = 0x35;
     cpu.memory[0xF001] = input8;
@@ -105,7 +105,7 @@ TEST_CASE("AND") {
 
   SECTION("Absolute") {
     cpu.writeMemory(input16, input8);
-    byte expected{ static_cast<byte>(cpu.accumulator & input8) };
+    Byte expected{static_cast<Byte>(cpu.accumulator & input8) };
 
     cpu.memory[0xF000] = 0x2D;
     cpu.memory[0xF001] = input16;
@@ -135,7 +135,7 @@ TEST_CASE("AND") {
   SECTION("Absolute X") {
     cpu.x = 1;
     cpu.writeMemory(input16 + cpu.x, input8);
-    byte expected{ static_cast<byte>(cpu.accumulator & input8) };
+    Byte expected{static_cast<Byte>(cpu.accumulator & input8) };
 
     cpu.memory[0xF000] = 0x3D;
     cpu.memory[0xF001] = input16;
@@ -171,7 +171,7 @@ TEST_CASE("AND") {
   SECTION("Absolute Y") {
     cpu.y = 1;
     cpu.writeMemory(input16 + cpu.y, input8);
-    byte expected{ static_cast<byte>(cpu.accumulator & input8) };
+    Byte expected{static_cast<Byte>(cpu.accumulator & input8) };
 
     cpu.memory[0xF000] = 0x39;
     cpu.memory[0xF001] = input16;
@@ -206,10 +206,10 @@ TEST_CASE("AND") {
 
   SECTION("Indirect X") {
     cpu.x = 1;
-    cpu.memory[static_cast<byte>(input8 + cpu.x)] = input16;
-    cpu.memory[static_cast<byte>(input8 + cpu.x + 1)] = input16 >> 8;
+    cpu.memory[static_cast<Byte>(input8 + cpu.x)] = input16;
+    cpu.memory[static_cast<Byte>(input8 + cpu.x + 1)] = input16 >> 8;
     cpu.writeMemory(input16, input8);
-    byte expected{ static_cast<byte>(cpu.accumulator & input8) };
+    Byte expected{static_cast<Byte>(cpu.accumulator & input8) };
 
     cpu.memory[0xF000] = 0x21;
     cpu.memory[0xF001] = input8;
@@ -239,9 +239,9 @@ TEST_CASE("AND") {
   SECTION("Indirect Y") {
     cpu.y = 1;
     cpu.memory[input8] = input16;
-    cpu.memory[static_cast<byte>(input8 + 1)] = input16 >> 8;
+    cpu.memory[static_cast<Byte>(input8 + 1)] = input16 >> 8;
     cpu.writeMemory(input16 + cpu.y, input8);
-    byte expected{ static_cast<byte>(cpu.accumulator & input8) };
+    Byte expected{static_cast<Byte>(cpu.accumulator & input8) };
 
     cpu.memory[0xF000] = 0x31;
     cpu.memory[0xF001] = input8;
@@ -279,12 +279,12 @@ TEST_CASE("EOR") {
   CPU cpu{nullptr};
   cpu.programCounter = 0xF000;
 
-  byte input8 = GENERATE(0, 0x12, 0xFF);
-  byte input16 = GENERATE(0xF, 0xFF, 0x123);
+  Byte input8 = GENERATE(0, 0x12, 0xFF);
+  Byte input16 = GENERATE(0xF, 0xFF, 0x123);
 
   SECTION("Immediate") {
     cpu.accumulator = 0x34;
-    byte expected{ static_cast<byte>(cpu.accumulator ^ input8) };
+    Byte expected{static_cast<Byte>(cpu.accumulator ^ input8) };
 
     cpu.memory[0xF000] = 0x49;
     cpu.memory[0xF001] = input8;
@@ -314,7 +314,7 @@ TEST_CASE("EOR") {
   SECTION("Zero Page") {
     cpu.memory[input8] = input8;
     cpu.accumulator = 0x34;
-    byte expected{ static_cast<byte>(cpu.accumulator ^ input8) };
+    Byte expected{static_cast<Byte>(cpu.accumulator ^ input8) };
 
     cpu.memory[0xF000] = 0x45;
     cpu.memory[0xF001] = input8;
@@ -345,7 +345,7 @@ TEST_CASE("EOR") {
     cpu.x = 1;
     cpu.memory[(input8 + cpu.x) & 0xFF] = input8;
     cpu.accumulator = 0x34;
-    byte expected{ static_cast<byte>(cpu.accumulator ^ input8) };
+    Byte expected{static_cast<Byte>(cpu.accumulator ^ input8) };
 
     cpu.memory[0xF000] = 0x55;
     cpu.memory[0xF001] = input8;
@@ -374,7 +374,7 @@ TEST_CASE("EOR") {
 
   SECTION("Absolute") {
     cpu.writeMemory(input16, input8);
-    byte expected{ static_cast<byte>(cpu.accumulator ^ input8) };
+    Byte expected{static_cast<Byte>(cpu.accumulator ^ input8) };
 
     cpu.memory[0xF000] = 0x4D;
     cpu.memory[0xF001] = input16;
@@ -404,7 +404,7 @@ TEST_CASE("EOR") {
   SECTION("Absolute X") {
     cpu.x = 1;
     cpu.writeMemory(input16 + cpu.x, input8);
-    byte expected{ static_cast<byte>(cpu.accumulator ^ input8) };
+    Byte expected{static_cast<Byte>(cpu.accumulator ^ input8) };
 
     cpu.memory[0xF000] = 0x5D;
     cpu.memory[0xF001] = input16;
@@ -440,7 +440,7 @@ TEST_CASE("EOR") {
   SECTION("Absolute Y") {
     cpu.y = 1;
     cpu.writeMemory(input16 + cpu.y, input8);
-    byte expected{ static_cast<byte>(cpu.accumulator ^ input8) };
+    Byte expected{static_cast<Byte>(cpu.accumulator ^ input8) };
 
     cpu.memory[0xF000] = 0x59;
     cpu.memory[0xF001] = input16;
@@ -475,10 +475,10 @@ TEST_CASE("EOR") {
 
   SECTION("Indirect X") {
     cpu.x = 1;
-    cpu.memory[static_cast<byte>(input8 + cpu.x)] = input16;
-    cpu.memory[static_cast<byte>(input8 + cpu.x + 1)] = input16 >> 8;
+    cpu.memory[static_cast<Byte>(input8 + cpu.x)] = input16;
+    cpu.memory[static_cast<Byte>(input8 + cpu.x + 1)] = input16 >> 8;
     cpu.writeMemory(input16, input8);
-    byte expected{ static_cast<byte>(cpu.accumulator ^ input8) };
+    Byte expected{static_cast<Byte>(cpu.accumulator ^ input8) };
 
     cpu.memory[0xF000] = 0x41;
     cpu.memory[0xF001] = input8;
@@ -508,9 +508,9 @@ TEST_CASE("EOR") {
   SECTION("Indirect Y") {
     cpu.y = 1;
     cpu.memory[input8] = input16;
-    cpu.memory[static_cast<byte>(input8 + 1)] = input16 >> 8;
+    cpu.memory[static_cast<Byte>(input8 + 1)] = input16 >> 8;
     cpu.writeMemory(input16 + cpu.y, input8);
-    byte expected{ static_cast<byte>(cpu.accumulator ^ input8) };
+    Byte expected{static_cast<Byte>(cpu.accumulator ^ input8) };
 
     cpu.memory[0xF000] = 0x51;
     cpu.memory[0xF001] = input8;
@@ -548,12 +548,12 @@ TEST_CASE("ORA") {
   CPU cpu{nullptr};
   cpu.programCounter = 0xF000;
 
-  byte input8 = GENERATE(0, 0x12, 0xFF);
-  byte input16 = GENERATE(0xF, 0xFF, 0x123);
+  Byte input8 = GENERATE(0, 0x12, 0xFF);
+  Byte input16 = GENERATE(0xF, 0xFF, 0x123);
 
   SECTION("Immediate") {
     cpu.accumulator = 0x34;
-    byte expected{ static_cast<byte>(cpu.accumulator | input8) };
+    Byte expected{static_cast<Byte>(cpu.accumulator | input8) };
 
     cpu.memory[0xF000] = 0x09;
     cpu.memory[0xF001] = input8;
@@ -583,7 +583,7 @@ TEST_CASE("ORA") {
   SECTION("Zero Page") {
     cpu.memory[input8] = input8;
     cpu.accumulator = 0x34;
-    byte expected{ static_cast<byte>(cpu.accumulator | input8) };
+    Byte expected{static_cast<Byte>(cpu.accumulator | input8) };
 
     cpu.memory[0xF000] = 0x05;
     cpu.memory[0xF001] = input8;
@@ -614,7 +614,7 @@ TEST_CASE("ORA") {
     cpu.x = 1;
     cpu.memory[(input8 + cpu.x) & 0xFF] = input8;
     cpu.accumulator = 0x34;
-    byte expected{ static_cast<byte>(cpu.accumulator | input8) };
+    Byte expected{static_cast<Byte>(cpu.accumulator | input8) };
 
     cpu.memory[0xF000] = 0x15;
     cpu.memory[0xF001] = input8;
@@ -643,7 +643,7 @@ TEST_CASE("ORA") {
 
   SECTION("Absolute") {
     cpu.writeMemory(input16, input8);
-    byte expected{ static_cast<byte>(cpu.accumulator | input8) };
+    Byte expected{static_cast<Byte>(cpu.accumulator | input8) };
 
     cpu.memory[0xF000] = 0x0D;
     cpu.memory[0xF001] = input16;
@@ -673,7 +673,7 @@ TEST_CASE("ORA") {
   SECTION("Absolute X") {
     cpu.x = 1;
     cpu.writeMemory(input16 + cpu.x, input8);
-    byte expected{ static_cast<byte>(cpu.accumulator | input8) };
+    Byte expected{static_cast<Byte>(cpu.accumulator | input8) };
 
     cpu.memory[0xF000] = 0x1D;
     cpu.memory[0xF001] = input16;
@@ -709,7 +709,7 @@ TEST_CASE("ORA") {
   SECTION("Absolute Y") {
     cpu.y = 1;
     cpu.writeMemory(input16 + cpu.y, input8);
-    byte expected{ static_cast<byte>(cpu.accumulator | input8) };
+    Byte expected{static_cast<Byte>(cpu.accumulator | input8) };
 
     cpu.memory[0xF000] = 0x19;
     cpu.memory[0xF001] = input16;
@@ -744,10 +744,10 @@ TEST_CASE("ORA") {
 
   SECTION("Indirect X") {
     cpu.x = 1;
-    cpu.memory[static_cast<byte>(input8 + cpu.x)] = input16;
-    cpu.memory[static_cast<byte>(input8 + cpu.x + 1)] = input16 >> 8;
+    cpu.memory[static_cast<Byte>(input8 + cpu.x)] = input16;
+    cpu.memory[static_cast<Byte>(input8 + cpu.x + 1)] = input16 >> 8;
     cpu.writeMemory(input16, input8);
-    byte expected{ static_cast<byte>(cpu.accumulator | input8) };
+    Byte expected{static_cast<Byte>(cpu.accumulator | input8) };
 
     cpu.memory[0xF000] = 0x01;
     cpu.memory[0xF001] = input8;
@@ -777,9 +777,9 @@ TEST_CASE("ORA") {
   SECTION("Indirect Y") {
     cpu.y = 1;
     cpu.memory[input8] = input16;
-    cpu.memory[static_cast<byte>(input8 + 1)] = input16 >> 8;
+    cpu.memory[static_cast<Byte>(input8 + 1)] = input16 >> 8;
     cpu.writeMemory(input16 + cpu.y, input8);
-    byte expected{ static_cast<byte>(cpu.accumulator | input8) };
+    Byte expected{static_cast<Byte>(cpu.accumulator | input8) };
 
     cpu.memory[0xF000] = 0x11;
     cpu.memory[0xF001] = input8;
@@ -817,8 +817,8 @@ TEST_CASE("BIT") {
   CPU cpu{nullptr};
   cpu.programCounter = 0xF000;
 
-  byte input8 = GENERATE(0, 0x12, 0xFF);
-  byte input16 = GENERATE(0xF, 0xFF, 0x123);
+  Byte input8 = GENERATE(0, 0x12, 0xFF);
+  Byte input16 = GENERATE(0xF, 0xFF, 0x123);
 
   SECTION("Zero Page") {
     cpu.accumulator = 0xFF;

@@ -9,7 +9,7 @@
 TEST_CASE("BCC") {
   CPU cpu{nullptr};
 
-  byte input8 = GENERATE(0, 0x12, 0xFF);
+  Byte input8 = GENERATE(0, 0x12, 0xFF);
   cpu.programCounter = GENERATE(0xF, 0x12, 0xFF);
   cpu.carry = GENERATE(true, false);
 
@@ -34,7 +34,7 @@ TEST_CASE("BCC") {
 TEST_CASE("BCS") {
   CPU cpu{nullptr};
 
-  byte input8 = GENERATE(0, 0x12, 0xFF);
+  Byte input8 = GENERATE(0, 0x12, 0xFF);
   cpu.programCounter = GENERATE(0xF, 0x12, 0xFF);
   cpu.carry = GENERATE(true, false);
 
@@ -59,7 +59,7 @@ TEST_CASE("BCS") {
 TEST_CASE("BEQ") {
   CPU cpu{nullptr};
 
-  byte input8 = GENERATE(0, 0x12, 0xFF);
+  Byte input8 = GENERATE(0, 0x12, 0xFF);
   cpu.programCounter = GENERATE(0xF, 0x12, 0xFF);
   cpu.zero = GENERATE(true, false);
 
@@ -84,7 +84,7 @@ TEST_CASE("BEQ") {
 TEST_CASE("BMI") {
   CPU cpu{nullptr};
 
-  byte input8 = GENERATE(0, 0x12, 0xFF);
+  Byte input8 = GENERATE(0, 0x12, 0xFF);
   cpu.programCounter = GENERATE(0xF, 0x12, 0xFF);
   cpu.negative = GENERATE(true, false);
 
@@ -109,7 +109,7 @@ TEST_CASE("BMI") {
 TEST_CASE("BNE") {
   CPU cpu{nullptr};
 
-  byte input8 = GENERATE(0, 0x12, 0xFF);
+  Byte input8 = GENERATE(0, 0x12, 0xFF);
   cpu.programCounter = GENERATE(0xF, 0x12, 0xFF);
   cpu.zero = GENERATE(true, false);
 
@@ -134,7 +134,7 @@ TEST_CASE("BNE") {
 TEST_CASE("BPL") {
   CPU cpu{nullptr};
 
-  byte input8 = GENERATE(0, 0x12, 0xFF);
+  Byte input8 = GENERATE(0, 0x12, 0xFF);
   cpu.programCounter = GENERATE(0xF, 0x12, 0xFF);
   cpu.negative = GENERATE(true, false);
 
@@ -159,7 +159,7 @@ TEST_CASE("BPL") {
 TEST_CASE("BVC") {
   CPU cpu{nullptr};
 
-  byte input8 = GENERATE(0, 0x12, 0xFF);
+  Byte input8 = GENERATE(0, 0x12, 0xFF);
   cpu.programCounter = GENERATE(0xF, 0x12, 0xFF);
   cpu.overflow = GENERATE(true, false);
 
@@ -184,7 +184,7 @@ TEST_CASE("BVC") {
 TEST_CASE("BVS") {
   CPU cpu{nullptr};
 
-  byte input8 = GENERATE(0, 0x12, 0xFF);
+  Byte input8 = GENERATE(0, 0x12, 0xFF);
   cpu.programCounter = GENERATE(0xF, 0x12, 0xFF);
   cpu.overflow = GENERATE(true, false);
 

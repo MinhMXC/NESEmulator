@@ -91,7 +91,7 @@ TEST_CASE("PPU Registers function correctly") {
   }
 
   SECTION("OAMDMA") {
-    std::vector<byte>cpuMem(0x3ff);
+    std::vector<Byte>cpuMem(0x3ff);
     for (int i{0x200}; i <= 0x2FF; i++) {
       cpuMem[i] = 0xff;
     }

@@ -10,8 +10,8 @@ TEST_CASE("INC") {
   CPU cpu{nullptr};
   cpu.programCounter = 0xF000;
 
-  byte input8 = GENERATE(0, 0x12, 0xFF);
-  byte input16 = GENERATE(0xF, 0xFF, 0x123);
+  Byte input8 = GENERATE(0, 0x12, 0xFF);
+  Byte input16 = GENERATE(0xF, 0xFF, 0x123);
 
   SECTION("Zero Page") {
     cpu.writeMemory(input8, input8);
@@ -25,10 +25,10 @@ TEST_CASE("INC") {
     CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 5);
 
-    CHECK(cpu.readMemory(input8) == static_cast<byte>(input8 + 1));
+    CHECK(cpu.readMemory(input8) == static_cast<Byte>(input8 + 1));
 
-    CHECK(cpu.zero == (static_cast<byte>(input8 + 1) == 0));
-    CHECK(cpu.negative == (static_cast<byte>(input8 + 1) >= 128));
+    CHECK(cpu.zero == (static_cast<Byte>(input8 + 1) == 0));
+    CHECK(cpu.negative == (static_cast<Byte>(input8 + 1) >= 128));
   }
 
   SECTION("Zero Page X") {
@@ -41,13 +41,13 @@ TEST_CASE("INC") {
 
     cpu.executeNextClock();
 
-    CHECK(cpu.readMemory((input8 + cpu.x) & 0xFF) == static_cast<byte>(input8 + 1));
+    CHECK(cpu.readMemory((input8 + cpu.x) & 0xFF) == static_cast<Byte>(input8 + 1));
 
     CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 6);
 
-    CHECK(cpu.zero == (static_cast<byte>(input8 + 1) == 0));
-    CHECK(cpu.negative == (static_cast<byte>(input8 + 1) >= 128));
+    CHECK(cpu.zero == (static_cast<Byte>(input8 + 1) == 0));
+    CHECK(cpu.negative == (static_cast<Byte>(input8 + 1) >= 128));
   }
 
   SECTION("Absolute") {
@@ -59,13 +59,13 @@ TEST_CASE("INC") {
 
     cpu.executeNextClock();
 
-    CHECK(cpu.readMemory(input16) == static_cast<byte>(input8 + 1));
+    CHECK(cpu.readMemory(input16) == static_cast<Byte>(input8 + 1));
 
     CHECK(cpu.programCounter == 0xF003);
     CHECK(cpu.cycle == 6);
 
-    CHECK(cpu.zero == (static_cast<byte>(input8 + 1) == 0));
-    CHECK(cpu.negative == (static_cast<byte>(input8 + 1) >= 128));
+    CHECK(cpu.zero == (static_cast<Byte>(input8 + 1) == 0));
+    CHECK(cpu.negative == (static_cast<Byte>(input8 + 1) >= 128));
   }
 
   SECTION("Absolute X") {
@@ -78,13 +78,13 @@ TEST_CASE("INC") {
 
     cpu.executeNextClock();
 
-    CHECK(cpu.readMemory(input16 + cpu.x) == static_cast<byte>(input8 + 1));
+    CHECK(cpu.readMemory(input16 + cpu.x) == static_cast<Byte>(input8 + 1));
 
     CHECK(cpu.programCounter == 0xF003);
     CHECK(cpu.cycle == 7);
 
-    CHECK(cpu.zero == (static_cast<byte>(input8 + 1) == 0));
-    CHECK(cpu.negative == (static_cast<byte>(input8 + 1) >= 128));
+    CHECK(cpu.zero == (static_cast<Byte>(input8 + 1) == 0));
+    CHECK(cpu.negative == (static_cast<Byte>(input8 + 1) >= 128));
   }
 }
 
@@ -92,7 +92,7 @@ TEST_CASE("INX") {
   CPU cpu{nullptr};
   cpu.programCounter = 0xF000;
 
-  byte input8 = GENERATE(0, 0x12, 0xFF);
+  Byte input8 = GENERATE(0, 0x12, 0xFF);
   cpu.x = input8;
 
   cpu.memory[0xF000] = 0xE8;
@@ -101,7 +101,7 @@ TEST_CASE("INX") {
 
   cpu.executeNextClock();
 
-  const byte expected{ static_cast<byte>(input8 + 1) };
+  const Byte expected{static_cast<Byte>(input8 + 1) };
   CHECK(cpu.x == expected);
   CHECK(cpu.programCounter == 0xF001);
   CHECK(cpu.zero == (expected == 0));
@@ -112,7 +112,7 @@ TEST_CASE("INY") {
   CPU cpu{nullptr};
   cpu.programCounter = 0xF000;
 
-  byte input8 = GENERATE(0, 0x12, 0xFF);
+  Byte input8 = GENERATE(0, 0x12, 0xFF);
   cpu.y = input8;
 
   cpu.memory[0xF000] = 0xC8;
@@ -121,7 +121,7 @@ TEST_CASE("INY") {
 
   cpu.executeNextClock();
 
-  const byte expected{ static_cast<byte>(input8 + 1) };
+  const Byte expected{static_cast<Byte>(input8 + 1) };
   CHECK(cpu.y == expected);
   CHECK(cpu.programCounter == 0xF001);
   CHECK(cpu.zero == (expected == 0));
@@ -132,8 +132,8 @@ TEST_CASE("DEC") {
   CPU cpu{nullptr};
   cpu.programCounter = 0xF000;
 
-  byte input8 = GENERATE(0, 0x12, 0xFF);
-  byte input16 = GENERATE(0xF, 0xFF, 0x123);
+  Byte input8 = GENERATE(0, 0x12, 0xFF);
+  Byte input16 = GENERATE(0xF, 0xFF, 0x123);
 
   SECTION("Zero Page") {
     cpu.writeMemory(input8, input8);
@@ -147,10 +147,10 @@ TEST_CASE("DEC") {
     CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 5);
 
-    CHECK(cpu.readMemory(input8) == static_cast<byte>(input8 - 1));
+    CHECK(cpu.readMemory(input8) == static_cast<Byte>(input8 - 1));
 
-    CHECK(cpu.zero == (static_cast<byte>(input8 - 1) == 0));
-    CHECK(cpu.negative == (static_cast<byte>(input8 - 1) >= 128));
+    CHECK(cpu.zero == (static_cast<Byte>(input8 - 1) == 0));
+    CHECK(cpu.negative == (static_cast<Byte>(input8 - 1) >= 128));
   }
 
   SECTION("Zero Page X") {
@@ -163,13 +163,13 @@ TEST_CASE("DEC") {
 
     cpu.executeNextClock();
 
-    CHECK(cpu.readMemory((input8 + cpu.x) & 0xFF) == static_cast<byte>(input8 - 1));
+    CHECK(cpu.readMemory((input8 + cpu.x) & 0xFF) == static_cast<Byte>(input8 - 1));
 
     CHECK(cpu.programCounter == 0xF002);
     CHECK(cpu.cycle == 6);
 
-    CHECK(cpu.zero == (static_cast<byte>(input8 - 1) == 0));
-    CHECK(cpu.negative == (static_cast<byte>(input8 - 1) >= 128));
+    CHECK(cpu.zero == (static_cast<Byte>(input8 - 1) == 0));
+    CHECK(cpu.negative == (static_cast<Byte>(input8 - 1) >= 128));
   }
 
   SECTION("Absolute") {
@@ -181,13 +181,13 @@ TEST_CASE("DEC") {
 
     cpu.executeNextClock();
 
-    CHECK(cpu.readMemory(input16) == static_cast<byte>(input8 - 1));
+    CHECK(cpu.readMemory(input16) == static_cast<Byte>(input8 - 1));
 
     CHECK(cpu.programCounter == 0xF003);
     CHECK(cpu.cycle == 6);
 
-    CHECK(cpu.zero == (static_cast<byte>(input8 - 1) == 0));
-    CHECK(cpu.negative == (static_cast<byte>(input8 - 1) >= 128));
+    CHECK(cpu.zero == (static_cast<Byte>(input8 - 1) == 0));
+    CHECK(cpu.negative == (static_cast<Byte>(input8 - 1) >= 128));
   }
 
   SECTION("Absolute X") {
@@ -200,13 +200,13 @@ TEST_CASE("DEC") {
 
     cpu.executeNextClock();
 
-    CHECK(cpu.readMemory(input16 + cpu.x) == static_cast<byte>(input8 - 1));
+    CHECK(cpu.readMemory(input16 + cpu.x) == static_cast<Byte>(input8 - 1));
 
     CHECK(cpu.programCounter == 0xF003);
     CHECK(cpu.cycle == 7);
 
-    CHECK(cpu.zero == (static_cast<byte>(input8 - 1) == 0));
-    CHECK(cpu.negative == (static_cast<byte>(input8 - 1) >= 128));
+    CHECK(cpu.zero == (static_cast<Byte>(input8 - 1) == 0));
+    CHECK(cpu.negative == (static_cast<Byte>(input8 - 1) >= 128));
   }
 }
 
@@ -214,7 +214,7 @@ TEST_CASE("DEX") {
   CPU cpu{nullptr};
   cpu.programCounter = 0xF000;
 
-  byte input8 = GENERATE(0, 0x12, 0xFF);
+  Byte input8 = GENERATE(0, 0x12, 0xFF);
   cpu.x = input8;
 
   cpu.memory[0xF000] = 0xCA;
@@ -223,7 +223,7 @@ TEST_CASE("DEX") {
 
   cpu.executeNextClock();
 
-  const byte expected{ static_cast<byte>(input8 - 1) };
+  const Byte expected{static_cast<Byte>(input8 - 1) };
   CHECK(cpu.x == expected);
   CHECK(cpu.programCounter == 0xF001);
   CHECK(cpu.zero == (expected == 0));
@@ -234,7 +234,7 @@ TEST_CASE("DEY") {
   CPU cpu{nullptr};
   cpu.programCounter = 0xF000;
 
-  byte input8 = GENERATE(0, 0x12, 0xFF);
+  Byte input8 = GENERATE(0, 0x12, 0xFF);
   cpu.y = input8;
 
   cpu.memory[0xF000] = 0x88;
@@ -243,7 +243,7 @@ TEST_CASE("DEY") {
 
   cpu.executeNextClock();
 
-  const byte expected{ static_cast<byte>(input8 - 1) };
+  const Byte expected{static_cast<Byte>(input8 - 1) };
   CHECK(cpu.y == expected);
   CHECK(cpu.programCounter == 0xF001);
   CHECK(cpu.zero == (expected == 0));

@@ -10,8 +10,8 @@ TEST_CASE("JMP") {
   CPU cpu{nullptr};
   cpu.programCounter = 0xF000;
 
-  byte input8 = GENERATE(0, 0x12, 0xFF);
-  byte input16 = GENERATE(0xF, 0xFF, 0x123);
+  Byte input8 = GENERATE(0, 0x12, 0xFF);
+  Byte input16 = GENERATE(0xF, 0xFF, 0x123);
 
   SECTION("Absolute") {
     cpu.memory[0xF000] = 0x4C;
@@ -43,10 +43,10 @@ TEST_CASE("JSR") {
   CPU cpu{nullptr};
   cpu.programCounter = 0xF000;
 
-  byte input8 = GENERATE(0, 0x12, 0xFF);
-  byte input16 = GENERATE(0xF, 0xFF, 0x123);
+  Byte input8 = GENERATE(0, 0x12, 0xFF);
+  Byte input16 = GENERATE(0xF, 0xFF, 0x123);
 
-  word val{ static_cast<word>(cpu.programCounter + 2) };
+  Word val{static_cast<Word>(cpu.programCounter + 2) };
 
   cpu.memory[0xF000] = 0x20;
   cpu.memory[0xF001] = input16;
@@ -65,8 +65,8 @@ TEST_CASE("RTS") {
   CPU cpu{nullptr};
   cpu.programCounter = 0xF000;
 
-  byte input8 = GENERATE(0, 0x12, 0xFF);
-  byte input16 = GENERATE(0xF, 0xFF, 0x123);
+  Byte input8 = GENERATE(0, 0x12, 0xFF);
+  Byte input16 = GENERATE(0xF, 0xFF, 0x123);
   cpu.memory[0x1FF] = input16 >> 8;
   cpu.memory[0x1FE] = input16;
   cpu.stackPointer = 0xFD;

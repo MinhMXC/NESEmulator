@@ -23,8 +23,8 @@ void CPU::executeNextClock() {
   // NMI is only checked at instruction fetching
   if ((ppu.readPPUStatusNoSideEffect() & 0b1000'0000) && (ppu.readPPUCtrlNoSideEffect() & 0b1000'0000) && !isNMIHappening && ppu.cycle > 2) {
     memory[0x100 + stackPointer] = programCounter >> 8;
-    memory[0x100 + static_cast<byte>(stackPointer - 1)] = programCounter;
-    memory[0x100 + static_cast<byte>(stackPointer - 2)] = convertFlag();
+    memory[0x100 + static_cast<Byte>(stackPointer - 1)] = programCounter;
+    memory[0x100 + static_cast<Byte>(stackPointer - 2)] = convertFlag();
     stackPointer -= 3;
     programCounter = memory[0xFFFA] + (memory[0xFFFB] << 8);
     totalCycle += 7;
@@ -38,10 +38,10 @@ void CPU::executeNextClock() {
     isNMIHappening = false;
   }
 
-  if (totalCycle == 831547)
+  if (totalCycle > 831547)
     int i{};
 
-  // printf("%04X  %02X %02X %02X   A:%02X X:%02X Y:%02X P:%02X SP:%02X   PPU:%03d,%03d  CYC: %llu  Frame: %d\n", programCounter, memory[programCounter], memory[programCounter + 1], memory[programCounter + 2], accumulator, x, y, convertFlag(), stackPointer, ppu.initialCycle, ppu.initialScanline, totalCycle, ppu.frame);
+  // printf("%04X  %02X %02X %02X   A:%02X X:%02X Y:%02X P:%02X SP:%02X   PPU:%03d,%03d  CYC: %llu  Frame: %d\n", programCounter, memory[programCounter], memory[programCounter + 1], memory[programCounter + 2], accumulator, x, y, convertFlag(), stackPointer, ppu.cycle + 1, ppu.scanline, totalCycle, ppu.frame);
 
   OpInfo op{ opInfo[memory[programCounter]] };
   totalCycle += op.cycle;
@@ -71,7 +71,7 @@ void CPU::executeNextClock() {
 
 
 // Memory
-byte CPU::readMemory(word addr) {
+Byte CPU::readMemory(Word addr) {
   switch (addr) {
     case 0x0000 ... 0x1FFF:
       addr = addr % 0x800;
@@ -103,7 +103,7 @@ byte CPU::readMemory(word addr) {
   }
 }
 
-void CPU::writeMemory(word addr, byte input) {
+void CPU::writeMemory(Word addr, Byte input) {
   switch (addr) {
     case 0x0000 ... 0x1FFF:
       addr = addr % 0x800;
@@ -165,11 +165,11 @@ void CPU::writeMemory(word addr, byte input) {
 
 
 // Flags
-byte CPU::convertFlag() const {
+Byte CPU::convertFlag() const {
   return (negative << 7) | (overflow << 6) | (1 << 5) | (decimal << 3) | (interruptDisable << 2) | (zero << 1) | (carry << 0);
 }
 
-void CPU::writeFlag(byte input) {
+void CPU::writeFlag(Byte input) {
   negative = input & 0b1000'0000;
   overflow = input & 0b0100'0000;
   decimal = input & 0b1000;
@@ -182,39 +182,39 @@ void CPU::writeFlag(byte input) {
 
 // OP Handler
 // Load Store
-void CPU::handleLDA(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte)) {
+void CPU::handleLDA(Byte arg1, Byte arg2, Byte (CPU::*readFn)(Byte, Byte)) {
   accumulator = (this->*readFn)(arg1, arg2);
   zero = accumulator == 0;
   negative = accumulator >= 128;
 }
 
-void CPU::handleLDX(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte)) {
+void CPU::handleLDX(Byte arg1, Byte arg2, Byte (CPU::*readFn)(Byte, Byte)) {
   x = (this->*readFn)(arg1, arg2);
   zero = x == 0;
   negative = x >= 128;
 }
 
-void CPU::handleLDY(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte)) {
+void CPU::handleLDY(Byte arg1, Byte arg2, Byte (CPU::*readFn)(Byte, Byte)) {
   y = (this->*readFn)(arg1, arg2);
   zero = y == 0;
   negative = y >= 128;
 }
 
-void CPU::handleSTA(byte arg1, byte arg2, void (CPU::*writeFn)(byte, byte, byte)) {
+void CPU::handleSTA(Byte arg1, Byte arg2, void (CPU::*writeFn)(Byte, Byte, Byte)) {
   (this->*writeFn)(arg1, arg2, accumulator);
 }
 
-void CPU::handleSTX(byte arg1, byte arg2, void (CPU::*writeFn)(byte, byte, byte)) {
+void CPU::handleSTX(Byte arg1, Byte arg2, void (CPU::*writeFn)(Byte, Byte, Byte)) {
   (this->*writeFn)(arg1, arg2, x);
 }
 
-void CPU::handleSTY(byte arg1, byte arg2, void (CPU::*writeFn)(byte, byte, byte)) {
+void CPU::handleSTY(Byte arg1, Byte arg2, void (CPU::*writeFn)(Byte, Byte, Byte)) {
   (this->*writeFn)(arg1, arg2, y);
 }
 
-void CPU::handleBranch(byte arg, bool flag) {
+void CPU::handleBranch(Byte arg, bool flag) {
   if (flag) {
-    word initial{ static_cast<word>(programCounter + 2) };
+    Word initial{static_cast<Word>(programCounter + 2) };
     programCounter += readRelative(arg, 0xFF);
     cycle += 1;
     if ((initial & 0xF00) != ((programCounter + 2) & 0xF00))
@@ -222,59 +222,59 @@ void CPU::handleBranch(byte arg, bool flag) {
   }
 }
 
-void CPU::handleASL(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte), void (CPU::*writeFn)(byte, byte, byte)) {
-  const byte temp{ (this->*readFn)(arg1, arg2) };
-  const byte res{ static_cast<byte>(temp << 1) };
+void CPU::handleASL(Byte arg1, Byte arg2, Byte (CPU::*readFn)(Byte, Byte), void (CPU::*writeFn)(Byte, Byte, Byte)) {
+  const Byte temp{(this->*readFn)(arg1, arg2) };
+  const Byte res{static_cast<Byte>(temp << 1) };
   (this->*writeFn)(arg1, arg2, res);
   carry = temp >= 128;
   zero = res == 0;
   negative = res >= 128;
 }
 
-void CPU::handleLSR(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte), void (CPU::*writeFn)(byte, byte, byte)) {
-  const byte temp{ (this->*readFn)(arg1, arg2) };
-  const byte res{ static_cast<byte>(temp >> 1) };
+void CPU::handleLSR(Byte arg1, Byte arg2, Byte (CPU::*readFn)(Byte, Byte), void (CPU::*writeFn)(Byte, Byte, Byte)) {
+  const Byte temp{(this->*readFn)(arg1, arg2) };
+  const Byte res{static_cast<Byte>(temp >> 1) };
   (this->*writeFn)(arg1, arg2, res);
   carry = temp & 0b1;
   zero = res == 0;
   negative = res >= 128;
 }
 
-void CPU::handleROL(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte), void (CPU::*writeFn)(byte, byte, byte)) {
-  const byte temp{ (this->*readFn)(arg1, arg2) };
-  const byte res{ static_cast<byte>((temp << 1) + carry) };
+void CPU::handleROL(Byte arg1, Byte arg2, Byte (CPU::*readFn)(Byte, Byte), void (CPU::*writeFn)(Byte, Byte, Byte)) {
+  const Byte temp{(this->*readFn)(arg1, arg2) };
+  const Byte res{static_cast<Byte>((temp << 1) + carry) };
   (this->*writeFn)(arg1, arg2, res);
   carry = temp & 0b1000'0000;
   zero = res == 0;
   negative = res >= 128;
 }
 
-void CPU::handleROR(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte), void (CPU::*writeFn)(byte, byte, byte)) {
-  const byte temp{ (this->*readFn)(arg1, arg2) };
-  const byte res{ static_cast<byte>((temp >> 1) + (carry << 7)) };
+void CPU::handleROR(Byte arg1, Byte arg2, Byte (CPU::*readFn)(Byte, Byte), void (CPU::*writeFn)(Byte, Byte, Byte)) {
+  const Byte temp{(this->*readFn)(arg1, arg2) };
+  const Byte res{static_cast<Byte>((temp >> 1) + (carry << 7)) };
   (this->*writeFn)(arg1, arg2, res);
   carry = temp & 0b1;
   zero = res == 0;
   negative = res >= 128;
 }
 
-void CPU::handleINC(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte), void (CPU::*writeFn)(byte, byte, byte)) {
-  const byte temp{ static_cast<byte>((this->*readFn)(arg1, arg2) + 1) };
+void CPU::handleINC(Byte arg1, Byte arg2, Byte (CPU::*readFn)(Byte, Byte), void (CPU::*writeFn)(Byte, Byte, Byte)) {
+  const Byte temp{static_cast<Byte>((this->*readFn)(arg1, arg2) + 1) };
   (this->*writeFn)(arg1, arg2, temp);
   zero = temp == 0;
   negative = temp >= 128;
 }
 
-void CPU::handleDEC(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte), void (CPU::*writeFn)(byte, byte, byte)) {
-  const byte temp{ static_cast<byte>((this->*readFn)(arg1, arg2) - 1) };
+void CPU::handleDEC(Byte arg1, Byte arg2, Byte (CPU::*readFn)(Byte, Byte), void (CPU::*writeFn)(Byte, Byte, Byte)) {
+  const Byte temp{static_cast<Byte>((this->*readFn)(arg1, arg2) - 1) };
   (this->*writeFn)(arg1, arg2, temp);
   zero = temp == 0;
   negative = temp >= 128;
 }
 
-void CPU::handleADC(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte)) {
-  const byte acc{ accumulator };
-  const byte add{ (this->*readFn)(arg1, arg2) };
+void CPU::handleADC(Byte arg1, Byte arg2, Byte (CPU::*readFn)(Byte, Byte)) {
+  const Byte acc{accumulator };
+  const Byte add{(this->*readFn)(arg1, arg2) };
   const int res{ accumulator + (this->*readFn)(arg1, arg2) + carry };
   accumulator = res;
   carry = res > 255;
@@ -283,9 +283,9 @@ void CPU::handleADC(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte)) {
   negative = accumulator >= 128;
 }
 
-void CPU::handleSBC(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte)) {
-  const byte acc{ accumulator };
-  const byte sub{ (this->*readFn)(arg1, arg2) };
+void CPU::handleSBC(Byte arg1, Byte arg2, Byte (CPU::*readFn)(Byte, Byte)) {
+  const Byte acc{accumulator };
+  const Byte sub{(this->*readFn)(arg1, arg2) };
   const int res{ accumulator - sub - !carry };
   accumulator = res;
   carry = res >= 0;
@@ -294,47 +294,47 @@ void CPU::handleSBC(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte)) {
   negative = accumulator >= 128;
 }
 
-void CPU::handleCMP(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte)) {
+void CPU::handleCMP(Byte arg1, Byte arg2, Byte (CPU::*readFn)(Byte, Byte)) {
   const int res{ accumulator - (this->*readFn)(arg1, arg2) };
   carry = res >= 0;
   zero = res == 0;
-  negative = static_cast<byte>(res) >= 128;
+  negative = static_cast<Byte>(res) >= 128;
 }
 
-void CPU::handleCPX(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte)) {
+void CPU::handleCPX(Byte arg1, Byte arg2, Byte (CPU::*readFn)(Byte, Byte)) {
   const int res{ x - (this->*readFn)(arg1, arg2) };
   carry = res >= 0;
   zero = res == 0;
-  negative = static_cast<byte>(res) >= 128;
+  negative = static_cast<Byte>(res) >= 128;
 }
 
-void CPU::handleCPY(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte)) {
+void CPU::handleCPY(Byte arg1, Byte arg2, Byte (CPU::*readFn)(Byte, Byte)) {
   const int res{ y - (this->*readFn)(arg1, arg2) };
   carry = res >= 0;
   zero = res == 0;
-  negative = static_cast<byte>(res) >= 128;
+  negative = static_cast<Byte>(res) >= 128;
 }
 
-void CPU::handleAND(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte)) {
+void CPU::handleAND(Byte arg1, Byte arg2, Byte (CPU::*readFn)(Byte, Byte)) {
   accumulator &= (this->*readFn)(arg1, arg2);
   zero = accumulator == 0;
   negative = accumulator >= 128;
 }
 
-void CPU::handleEOR(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte)) {
+void CPU::handleEOR(Byte arg1, Byte arg2, Byte (CPU::*readFn)(Byte, Byte)) {
   accumulator ^= (this->*readFn)(arg1, arg2);
   zero = accumulator == 0;
   negative = accumulator >= 128;
 }
 
-void CPU::handleORA(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte)) {
+void CPU::handleORA(Byte arg1, Byte arg2, Byte (CPU::*readFn)(Byte, Byte)) {
   accumulator |= (this->*readFn)(arg1, arg2);
   zero = accumulator == 0;
   negative = accumulator >= 128;
 }
 
-void CPU::handleBIT(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte)) {
-  byte mem{ (this->*readFn)(arg1, arg2) };
+void CPU::handleBIT(Byte arg1, Byte arg2, Byte (CPU::*readFn)(Byte, Byte)) {
+  Byte mem{(this->*readFn)(arg1, arg2) };
   zero = (accumulator & mem) == 0;
   overflow = (mem & 0b0100'0000) > 0;
   negative = (mem & 0b1000'0000) > 0;
@@ -342,7 +342,7 @@ void CPU::handleBIT(byte arg1, byte arg2, byte (CPU::*readFn)(byte, byte)) {
 
 
 
-bool CPU::executeOp(byte op, byte arg1, byte arg2) {
+bool CPU::executeOp(Byte op, Byte arg1, Byte arg2) {
   switch(op) {
     // Load Store
     // LDA
@@ -883,7 +883,7 @@ bool CPU::executeOp(byte op, byte arg1, byte arg2) {
     // ROR
     case 0x6A:
     {
-      const byte temp{ accumulator };
+      const Byte temp{accumulator };
       accumulator = (temp >> 1) + (carry << 7);
       carry = temp & 0b1;
       zero = accumulator == 0;
@@ -915,8 +915,8 @@ bool CPU::executeOp(byte op, byte arg1, byte arg2) {
     case 0x6C:
     {
       // Need to be same page
-      word addr{ static_cast<word>(arg1 + (arg2 << 8)) };
-      word addr2nd{ static_cast<word>(arg1 + (arg2 << 8) + 1) };
+      Word addr{static_cast<Word>(arg1 + (arg2 << 8)) };
+      Word addr2nd{static_cast<Word>(arg1 + (arg2 << 8) + 1) };
       if ((addr & 0xF00) != ((addr2nd + 1) & 0xF00))
         addr2nd = (addr & 0xF00);
       programCounter = readMemory(addr) + (readMemory(addr2nd) << 8);
@@ -927,7 +927,7 @@ bool CPU::executeOp(byte op, byte arg1, byte arg2) {
     // JSR
     case 0x20:
       memory[0x100 + stackPointer] = (programCounter + 2) >> 8;
-      memory[0x100 + static_cast<byte>(stackPointer - 1)] = (programCounter + 2);
+      memory[0x100 + static_cast<Byte>(stackPointer - 1)] = (programCounter + 2);
       stackPointer -= 2;
       programCounter = arg1 + (arg2 << 8);
       return false;
@@ -935,9 +935,9 @@ bool CPU::executeOp(byte op, byte arg1, byte arg2) {
     // RTS
     case 0x60:
     {
-      const word addr{ static_cast<word>(memory[0x100 + static_cast<byte>(stackPointer + 1)] + (memory[0x100 + static_cast<byte>(stackPointer + 2)] << 8)) };
-      memory[0x100 + static_cast<byte>(stackPointer + 1)] = 0;
-      memory[0x100 + static_cast<byte>(stackPointer + 2)] = 0;
+      const Word addr{static_cast<Word>(memory[0x100 + static_cast<Byte>(stackPointer + 1)] + (memory[0x100 + static_cast<Byte>(stackPointer + 2)] << 8)) };
+      memory[0x100 + static_cast<Byte>(stackPointer + 1)] = 0;
+      memory[0x100 + static_cast<Byte>(stackPointer + 2)] = 0;
       stackPointer += 2;
       programCounter = addr + 1;
     }
@@ -1050,9 +1050,9 @@ bool CPU::executeOp(byte op, byte arg1, byte arg2) {
     case 0x00:
       breakCommand = true;
       memory[0x100 + stackPointer] = programCounter >> 8;
-      memory[0x100 + static_cast<byte>(stackPointer - 1)] = programCounter;
-      memory[0x100 + static_cast<byte>(stackPointer - 2)] = convertFlag();
-      memory[0x100 + static_cast<byte>(stackPointer - 2)] |= 0b0001'0000;
+      memory[0x100 + static_cast<Byte>(stackPointer - 1)] = programCounter;
+      memory[0x100 + static_cast<Byte>(stackPointer - 2)] = convertFlag();
+      memory[0x100 + static_cast<Byte>(stackPointer - 2)] |= 0b0001'0000;
       stackPointer -= 3;
       return false;
 
@@ -1064,13 +1064,13 @@ bool CPU::executeOp(byte op, byte arg1, byte arg2) {
 
     // RTI
     case 0x40:
-      writeFlag(memory[0x100 + static_cast<byte>(stackPointer + 1)]);
+      writeFlag(memory[0x100 + static_cast<Byte>(stackPointer + 1)]);
       programCounter = 0;
-      programCounter += memory[0x100 + static_cast<byte>(stackPointer + 2)];
-      programCounter += (memory[0x100 + static_cast<byte>(stackPointer + 3)]) << 8;
-      memory[0x100 + static_cast<byte>(stackPointer + 1)] = 0;
-      memory[0x100 + static_cast<byte>(stackPointer + 2)] = 0;
-      memory[0x100 + static_cast<byte>(stackPointer + 3)] = 0;
+      programCounter += memory[0x100 + static_cast<Byte>(stackPointer + 2)];
+      programCounter += (memory[0x100 + static_cast<Byte>(stackPointer + 3)]) << 8;
+      memory[0x100 + static_cast<Byte>(stackPointer + 1)] = 0;
+      memory[0x100 + static_cast<Byte>(stackPointer + 2)] = 0;
+      memory[0x100 + static_cast<Byte>(stackPointer + 3)] = 0;
       stackPointer += 3;
       return false;
     default:
