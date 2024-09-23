@@ -41,7 +41,7 @@ void CPU::executeNextClock() {
   if (totalCycle > 831547)
     int i{};
 
-  // printf("%04X  %02X %02X %02X   A:%02X X:%02X Y:%02X P:%02X SP:%02X   PPU:%03d,%03d  CYC: %llu  Frame: %d\n", programCounter, memory[programCounter], memory[programCounter + 1], memory[programCounter + 2], accumulator, x, y, convertFlag(), stackPointer, ppu.cycle + 1, ppu.scanline, totalCycle, ppu.frame);
+  // printf("%04X  %02X %02X %02X   A:%02X X:%02X Y:%02X P:%02X SP:%02X   PPU:%03d,%03d  CYC: %llu  Frame: %d  v = %04X\n", programCounter, memory[programCounter], memory[programCounter + 1], memory[programCounter + 2], accumulator, x, y, convertFlag(), stackPointer, ppu.cycle + 1, ppu.scanline, totalCycle, ppu.frame, ppu.v);
 
   OpInfo op{ opInfo[memory[programCounter]] };
   totalCycle += op.cycle;

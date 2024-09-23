@@ -120,44 +120,11 @@ int main(int argv, char** args) {
 
 
 
-  // freopen("log.txt", "w", stdout);
+  //  freopen("log.txt", "w", stdout);
 
 
   cpu.executeStartUpSequence();
 
-//  for (int i{0x23C0}; i < 0x2400; i += 8) {
-//    ppu.memory[i + 0] = 0;
-//    ppu.memory[i + 1] = 0;
-//    ppu.memory[i + 2] = 0;
-//    ppu.memory[i + 3] = 0b01010101;
-//    ppu.memory[i + 4] = 0b01010101;
-//    ppu.memory[i + 5] = 0b01010101;
-//    ppu.memory[i + 6] = 0b10101010;
-//    ppu.memory[i + 7] = 0b10101010;
-//  }
-//
-//  ppu.memory[0x3F01] = 1;
-//  ppu.memory[0x3F05] = 10;
-//  ppu.memory[0x3F09] = 20;
-//
-//  ppu.memory[0x0] = 0b1111'1111;
-//  ppu.memory[0x1] = 0b1111'1111;
-//  ppu.memory[0x2] = 0b1111'1111;
-//  ppu.memory[0x3] = 0b1111'1111;
-//
-//  ppu.memory[0x4] = 0b1111'1111;
-//  ppu.memory[0x5] = 0b1111'1111;
-//  ppu.memory[0x6] = 0b1111'1111;
-//  ppu.memory[0x7] = 0b1111'1111;
-//
-//  ppu.writePPUMask(0b0001'1110);
-//
-//  for (int i{}; i < 2; i++) {
-//    for (int j{}; j < 341 * 256; j++) {
-//      ppu.executeNextClock();
-//    }
-//  }
-//
   bool quit{false};
   uint64_t lastTotalCycle{cpu.totalCycle};
   SDL_Event e;
@@ -189,8 +156,16 @@ int main(int argv, char** args) {
       inputHandler.handleEvent(e);
 
       if (e.key.keysym.sym == SDLK_0 && e.type == SDL_KEYDOWN) {
-        for (int i{0x2000}; i < 0x2400; i++) {
-          if (i % 0x10 == 0)
+        for (int i{0x2000}; i < 0x23C0; i++) {
+          if (i % 0x20 == 0)
+            printf("\n");
+          printf("%02X ", ppu.memory[i]);
+        }
+
+        printf("\n");
+
+        for (int i{0x23C0}; i < 0x2400; i++) {
+          if (i % 0x08 == 0)
             printf("\n");
           printf("%02X ", ppu.memory[i]);
         }

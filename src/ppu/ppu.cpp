@@ -3,6 +3,92 @@
 #include "../utils.h"
 #include <cstdio>
 
+Background::Background(PPU &ppu) : ppu{ppu}, v{ppu.v} {}
+
+void Background::clearDeque() {
+  backgroundPixelData.clear();
+}
+
+PixelData Background::getPixelData() {
+  if (backgroundPixelData.empty())
+    return 0;
+
+  const PixelData temp{ backgroundPixelData[ppu.x] };
+  backgroundPixelData.pop_front();
+  return temp;
+}
+
+void Background::tick() {
+  if (!ppu.isRendering())
+    return;
+
+  if (ppu.cycle % 8 != 0)
+    return;
+
+  Byte nameTableByte;
+  Byte ptrnTableLow;
+  Byte ptrnTableHigh;
+  Byte attr;
+  int attrOffset;
+
+  nameTableByte = ppu.readMemory(0x2000 | (v & 0x0FFF));
+  if (nameTableByte == 3 && ppu.scanline == 20)
+    int i{};
+  ptrnTableLow = ppu.readMemory(((ppu.ppuCtrl & 0b10000) << 8) | (nameTableByte << 4) | ((v & 0x7000) >> 12));
+  ptrnTableHigh = ppu.readMemory(((ppu.ppuCtrl & 0b10000) << 8) | (nameTableByte << 4) | 0b1000 | ((v & 0x7000) >> 12));
+  attr = ppu.readMemory(0x23C0 | (v & 0x0C00) | ((v >> 4) & 0x38) | ((v >> 2) & 0x07));
+
+  // + 8 because for example, at 8, 0, the pixels from 16-23, 0 is being rendered
+  // so the real cycle is current cycle + 8
+  int offsetX{ ppu.cycle > 321 ? (ppu.cycle - 328) % 32 : (ppu.cycle + 8) % 32 };
+  int offsetY{ ppu.cycle > 321 ? (((ppu.scanline + 1) % 261) % 32) : (ppu.scanline % 32) };
+
+  if (offsetY < 16) // Top
+    attrOffset = offsetX < 16 ? 0 : 2;
+  else // Bottom
+    attrOffset = offsetX < 16 ? 4 : 6;
+
+  attr = (attr & (0b11 << attrOffset)) >> attrOffset;
+
+  for (int i{}; i < 8; i++) {
+    backgroundPixelData.emplace_back((attr << 2) | (((ptrnTableLow & 0x80) >> 7) + ((ptrnTableHigh & 0x80) >> 7) * 2));
+    ptrnTableLow <<= 1;
+    ptrnTableHigh <<= 1;
+  }
+
+  // Switch to new NameTable
+  if ((v & 0b11111) == 31) {
+    v &= 0xFFE0;
+    v ^= 0x0400;
+  } else {
+    v++;
+  }
+
+  // At the end clear queue and update v
+  if (ppu.cycle == 256) {
+    if ((v & 0x7000) != 0x7000) {
+      v += 0x1000;
+    } else {
+      v &= 0x8FFF;
+
+      Byte coarseY{static_cast<Byte>((v & 0x3E0) >> 5) };
+      if (coarseY == 29) {
+        coarseY = 0;
+        v ^= 0x0800;
+      } else if (coarseY == 31) {
+        coarseY = 0;
+      } else {
+        coarseY += 1;
+      }
+      v = (v & ~0x03E0) | (coarseY << 5);
+    }
+
+    backgroundPixelData.clear();
+  }
+}
+
+
+
 OAM::OAM(PPU& ppu) : ppu{ppu}, oam(0x100, 0xFF), secondaryOam(0x20, 0xFF),
 spritePixelData(EmuConst::SCREEN_WIDTH), oamAddr{}, isSecondaryOamClearing{}, secondaryOamAddr{},
 spriteEvaluationEnd{}, readOffset{} {}
@@ -26,7 +112,7 @@ void OAM::writeOAMData(Byte input) {
   oamAddr++;
 }
 
-void OAM::dma(std::vector<Byte>& cpuMem, Byte input) {
+void OAM::DMA(std::vector<Byte>& cpuMem, Byte input) {
   Byte writeAddr{ oamAddr };
   for (int i{ input * 256 }; i <= input * 256 + 255; i++) {
     oam[writeAddr] = cpuMem[i];
@@ -152,7 +238,7 @@ void OAM::evaluateSpriteData(int index) {
   ptrnTableLow = ppu.readMemory(ptrnLocation);
   ptrnTableHigh = ppu.readMemory(ptrnLocation | 0b1000);
 
-  // Encoding to SpriteData
+  // Encoding to PixelData
   if (attr & 0b0100'0000) { // Sprite is flipped horizontally
     for (int i{xPos}; i <= xPos + 7; i++) {
       if (i >= spritePixelData.size())
@@ -177,10 +263,10 @@ void OAM::evaluateSpriteData(int index) {
 
 
 
-PPU::PPU(Display& display) : memory(0x4000), spritePixelData(EmuConst::SCREEN_WIDTH),
+PPU::PPU(Display& display) : memory(0x4000),
 ppuCtrl{}, ppuMask{}, ppuStatus{}, v{}, t{}, x{}, w{}, cycle{-1}, scanline{-1}, isEvenFrame{false},
-lowBGShiftRegister{}, highBGShiftRegister{}, attrQueue{}, display{display}, first{true}, frame{-1}, disableNextNMI{false},
-nametableArrangement{}, oam{*this} {}
+display{display}, first{true}, frame{-1}, disableNextNMI{false},
+nametableArrangement{}, oam{*this}, background{*this} {}
 
 void PPU::executeNextClock() {
   cycle = (cycle + 1) % 341;
@@ -264,13 +350,13 @@ Word PPU::mapMemory(Word addr) const {
             addr = addr;
             break;
           case 0x2400 ... 0x27FF:
-            addr -= 400;
+            addr -= 0x400;
             break;
           case 0x2800 ... 0x2BFF:
             addr = addr;
             break;
           case 0x2C00 ... 0x2FFF:
-            addr -= 400;
+            addr -= 0x400;
             break;
           default:
             printf("horizontal Mirroring default encountered! @ %04X\n", addr);
@@ -321,41 +407,17 @@ void PPU::handleVisibleScanline() {
       break;
     case 1 ... 256:
       handleDraw(true);
-      handleBackgroundFetching();
-
-      // increment vertical(v)
-      // TODO: do this only if rendering is enabled, dont do his yet because it may cause segmentation fault
-      if (isRendering()) {
-        if (cycle == 256) {
-          if (((v & 0x7000) >> 12) != 7) {
-            v += 0x1000;
-          } else {
-            v &= 0x8FFF;
-
-            Byte coarseY{static_cast<Byte>((v & 0x3E0) >> 5) };
-            if (coarseY == 29) {
-              v &= 0xFC1F;
-              v ^= 0b1000'0000'0000;
-            } else if (coarseY == 31) {
-              v &= 0xFC1F;
-            } else {
-              v &= 0xFC1F;
-              v |= (coarseY + 1) << 5;
-            }
-          }
-        }
-      }
+      background.tick();
       break;
     case 257:
       if (isRendering()) {
         v &= 0x7BE0;
         v |= (t & 0x41F);
       }
-      attrQueue = std::queue<Byte>();
       break;
     case 321 ... 336:
       handleDraw(false);
-      handleBackgroundFetching();
+      background.tick();
       break;
       // TODO mmc5 quirk utilise two useless fetch here
     default:
@@ -374,7 +436,7 @@ void PPU::handlePreRenderScanline() {
         v &= 0x7BE0;
         v |= (t & 0x41F);
       }
-      attrQueue = std::queue<Byte>();
+      background.clearDeque();
       break;
     case 280 ... 304:
       if (isRendering()) {
@@ -384,7 +446,7 @@ void PPU::handlePreRenderScanline() {
       break;
     case 321 ... 336:
       handleDraw(false);
-      handleBackgroundFetching();
+      background.tick();
       break;
       // TODO mmc5 quirk utilise two useless fetch here
     default:
@@ -392,98 +454,31 @@ void PPU::handlePreRenderScanline() {
   }
 }
 
-void PPU::handleBackgroundFetching() {
-  static Byte nameTableByte{};
-  static Byte ptrnTableTileLow{};
-  static Byte ptrnTableTileHigh{};
-
-  if (scanline == 0 && cycle == 1) {
-    int i{};
-  }
-
-  switch (cycle % 8) {
-    case 1:
-      nameTableByte = readMemory(0x2000 | (v & 0x0FFF));
-      break;
-    case 2:
-      break;
-    case 3:
-      attrQueue.push(readMemory(0x23C0 | (v & 0x0C00) | ((v >> 4) & 0x38) | ((v >> 2) & 0x07)));
-      break;
-    case 4:
-      break;
-    case 5:
-      ptrnTableTileLow = readMemory(((ppuCtrl & 0b10000) << 8) | (nameTableByte << 4) | ((v & 0x7000) >> 12));
-      break;
-    case 6:
-      break;
-    case 7:
-      ptrnTableTileHigh = readMemory(((ppuCtrl & 0b10000) << 8) | (nameTableByte << 4) | 0b1000 | ((v & 0x7000) >> 12));
-      break;
-    case 0: {
-      lowBGShiftRegister &= 0xFF00;
-      lowBGShiftRegister |= ptrnTableTileLow;
-      highBGShiftRegister &= 0xFF00;
-      highBGShiftRegister |= ptrnTableTileHigh;
-
-      if (isRendering()) {
-        if ((v & 0b11111) == 31) {
-          v &= 0xFFE0;
-          v ^= 0b100'0000'0000;
-        } else {
-          v++;
-        }
-      }
-    }
-      break;
-    default:
-      printf("PPU handleBackgroundFetching overflow");
-  }
-}
-
-
 // Drawing
 
 void PPU::handleDraw(bool render) {
-  static int low{};
-  static int high{};
-  static int attrOffset{};
-  static int attr{};
-  static int bgPixelValue{};
-  static int bgAttr{};
-  static int bgColorMemAddr{};
-  static int priority{};
-  static int spritePixelValue{};
-  static int spriteColorMemArr{};
-  static Word colorMemAddr{};
+  int bgPixelValue;
+  int bgColorMemAddr;
+  int priority;
+  int spritePixelValue;
+  int spriteColorMemAddr;
+  Word colorMemAddr{};
 
-  if (!render) {
-    lowBGShiftRegister <<= 1;
-    highBGShiftRegister <<= 1;
+  if (!render)
     return;
-  }
 
-  if (cycle % 8 == 1) {
-    attr = attrQueue.front();
-    attrQueue.pop();
-  }
+  const PixelData bg{ background.getPixelData() };
+  bgPixelValue = bg & 0b11;
+  bgColorMemAddr = 0x3F00 | bg;
 
-  low = (lowBGShiftRegister & (0x8000 >> x)) >> (15 - x);
-  high = (highBGShiftRegister & (0x8000 >> x)) >> (15 - x);
-  bgPixelValue = low * 1 + high * 2;
-  attrOffset = ((scanline % 32) / 16 * 2 + ((cycle - 1) % 32) / 16) * 2;
-  bgAttr = (attr & (0b11 << attrOffset)) >> attrOffset;
-  bgColorMemAddr = 0x3F00 | (bgAttr << 2) | bgPixelValue;
-
-  const SpriteData sprite{oam.getPixelData(cycle - 1) };
-  // const SpriteData sprite{ spritePixelData[cycle - 1] };
+  const PixelData sprite{oam.getPixelData(cycle - 1) };
   priority = (sprite & 0b0100'0000) >> 6;
   spritePixelValue = sprite & 0b11;
-  spriteColorMemArr = 0x3F00 | sprite & 0x1F;
+  spriteColorMemAddr = 0x3F00 | (sprite & 0x1F);
 
   if ((ppuMask & 0b0100) == 0 && cycle - 1 < 8) {
     spritePixelValue = 0;
-    spriteColorMemArr = 0x3F00;
+    spriteColorMemAddr = 0x3F00;
   }
 
   if ((ppuMask & 0b0010) == 0 && cycle - 1 < 8) {
@@ -491,43 +486,35 @@ void PPU::handleDraw(bool render) {
     bgColorMemAddr = 0x3F00;
   }
 
-  if (scanline == 120 && cycle == 10) {
-    int i{};
-  }
-
   if (((ppuMask & 0b1000) > 0) && ((ppuMask & 0b1'0000) > 0)) { // Both background and sprite are rendered
     // Rendering Priority Routine
     if ((bgPixelValue == 0) && (spritePixelValue == 0)) {
       colorMemAddr = 0x3F00;
     } else if ((bgPixelValue == 0) && (spritePixelValue > 0)) {
-      colorMemAddr = spriteColorMemArr;
+      colorMemAddr = spriteColorMemAddr;
     } else if ((bgPixelValue > 0) && (spritePixelValue == 0)) {
       colorMemAddr = bgColorMemAddr;
     } else if ((bgPixelValue > 0) && (spritePixelValue > 0) && (priority == 0)) {
-      if (sprite & 0b0010'0000) {
+      if (sprite & 0b0010'0000)
         ppuStatus |= 0b0100'0000;
-      }
-      colorMemAddr = spriteColorMemArr;
+      colorMemAddr = spriteColorMemAddr;
     } else if ((bgPixelValue > 0) && (spritePixelValue > 0) && (priority == 1)) {
-      if (sprite & 0b0010'0000) {
+      if (sprite & 0b0010'0000)
         ppuStatus |= 0b0100'0000;
-      }
       colorMemAddr = bgColorMemAddr;
     } else {
       printf("Pixel Priority Overflow\n");
     }
   } else if ((ppuMask & 0b1'0000) > 0) { // only sprite is rendered
-    colorMemAddr = spritePixelValue == 0 ? 0x3F00 : spriteColorMemArr;
+    colorMemAddr = spritePixelValue == 0 ? 0x3F00 : spriteColorMemAddr;
   } else if ((ppuMask & 0b1000) > 0) { // only bg is rendered
     colorMemAddr = bgPixelValue == 0 ? 0x3F00 : bgColorMemAddr;
   } else {
     colorMemAddr = 0x3F00;
   }
 
-  Byte color{readMemory(colorMemAddr) };
+  Byte color{ readMemory(colorMemAddr) };
   display.drawPixel(cycle - 1, scanline, ppuMask & 0b1 ? (color & 0x30) : color );
-  lowBGShiftRegister <<= 1;
-  highBGShiftRegister <<= 1;
 }
 
 
@@ -591,7 +578,7 @@ void PPU::writePPUAddr(Byte val) {
 // TODO: Reading Palette RAM quirk
 Byte PPU::readPPUData() {
   static Byte buffer{};
-  Byte temp{buffer };
+  Byte temp{ buffer };
   buffer = readMemory(v);
   v += extractBit(ppuCtrl, 2, 2) ? 32 : 1;
   return temp;
@@ -603,7 +590,7 @@ void PPU::writePPUData(Byte val) {
 }
 
 void PPU::writeOAMDma(std::vector<Byte>& cpuMem, Byte input) {
-  oam.dma(cpuMem, input);
+  oam.DMA(cpuMem, input);
 }
 
 bool PPU::isRendering() const {

@@ -8,8 +8,9 @@
 
 /**
  * \brief First 5 bit = paletteIndex, bit 5 = isSprite0, bit 6 = priority, bit 7 = hasBeenWrittenTo
+ * \note In the case of Background, only the first 4 bit, paletteIndex is used
  */
-using SpriteData = uint8_t;
+using PixelData = uint8_t;
 using Byte = uint8_t;
 using Word = uint16_t;
 
@@ -28,13 +29,13 @@ public:
   explicit OAM(PPU& ppu);
 
   /**
-   * \brief Get the pixelData at the specified x-position
+   * \brief Get the Sprite Pixel Data at the specified x-position
    * \param x the x-position
    * \note The y-position is based on the current scanline of the PPU. If PPU current scanline is 1 then y-position is 0,
    * i.e y-position = scanline - 1. This is because of how the Sprite Evaluation work in NES.
    * \warning This must be used in conjunction with tick(). This will clear the spritePixelData at that location.
    */
-  Byte getPixelData(int x);
+  PixelData getPixelData(int x);
 
   /**
    * \brief Execute the OAM operation at the current cycle and scanline of PPU
@@ -68,12 +69,7 @@ public:
    * \param cpuMem reference to CPU Memory Array
    * \param input If input is XX, data is from CPU page $XX00–$XXFF
    */
-  void dma(std::vector<Byte>& cpuMem, Byte input);
-
-  /**
-   * \brief The 256 Byte SpriteData to store the result of the OAM process executed in PPU scanline - 1
-   */
-  std::vector<SpriteData> spritePixelData;
+  void DMA(std::vector<Byte>& cpuMem, Byte input);
 
 private:
   /**
@@ -85,7 +81,7 @@ private:
   void evaluateOAM();
 
   /**
-   * \brief Convert SecondaryOAM content to SpriteData
+   * \brief Convert SecondaryOAM content to PixelData
    * \note Call this function from cycle 257 to 320 from scanline 0 to scanline 239 of PPU when
    * scanline % 8 == 0 (This function will be called exactly 8 times)
    */
@@ -108,6 +104,11 @@ private:
    * </a> for internal operations
    */
   std::vector<Byte> secondaryOam;
+
+  /**
+   * \brief The 256 Byte PixelData to store the result of the OAM process executed in PPU scanline - 1
+   */
+  std::vector<PixelData> spritePixelData;
 
   /**
    * \brief
@@ -140,9 +141,59 @@ private:
 
 
 
+/**
+ * \brief Class to handle Background Rendering Process of PPU
+ */
+class Background {
+public:
+  /**
+   * \brief Initialise Background Rendering
+   * \param ppu Reference to the PPU that will use this Background Rendering
+   */
+  explicit Background(PPU& ppu);
+
+  /**
+   * \brief Execute the Background operation at the current cycle and scanline of PPU
+   * \note Call this function from cycle 1 to 256 from scanline 0 to scanline 239 (inclusive) and pre-render scanline of PPU
+   */
+  void tick();
+
+  /**
+   * \brief Get the Background Pixel Data at the front of the queue
+   * \note If used correctly, it will return the Background Pixel Data of x-position ppu.cycle - 1.
+   * This will also pop the Pixel Data off the queue. Return 0 if queue is empty
+   */
+  PixelData getPixelData();
+
+  /**
+   * \brief Clear Background Pixel Data deque
+   */
+  void clearDeque();
+
+private:
+
+  /**
+   * \brief Reference to the PPU that own this Background Rendering Process
+   */
+  PPU& ppu;
+
+  /**
+   * \brief Reference v register of PPU (for convenience)
+   */
+  Word& v;
+
+  /**
+  * \brief Queue to store the result of the Background Rendering Process
+  */
+  std::deque<PixelData> backgroundPixelData;
+};
+
+
+
 class PPU {
   friend class Initializer;
   friend class OAM;
+  friend class Background;
 
 public:
   explicit PPU(Display& display);
@@ -176,9 +227,12 @@ public:
   int frame;
   bool disableNextNMI;
   bool nametableArrangement; // 0 = horizontal, 1 = vertical
+
+  Word v;
 private:
   Display& display;
   OAM oam;
+  Background background;
 
   // Memory
 
@@ -188,30 +242,20 @@ private:
   Byte ppuStatus;
 
   // Internal Register
-  Word v;
+
   Word t;
   Word x;
   Word w;
 
-  // For background rendering
-  std::queue<Byte> attrQueue; // Because attr data is also delayed by 16pixel
-  Word lowBGShiftRegister;
-  Word highBGShiftRegister;
-
   // Check whether it is the first frame
   bool first;
-
-  // Store the 256 pixel data for the sprite in next scanline
-  // first 5 bit == palette index, 5th bit == sprite 0, 6th bit == priority, 7th bit == hasBeenWrittenTo
-  std::vector<Byte> spritePixelData;
 
   // Memory Mapping
   Byte readMemory(Word addr);
   void writeMemory(Word addr, Byte input);
-  Word mapMemory(Word addr) const;
+  [[nodiscard]] Word mapMemory(Word addr) const;
 
   void handleVisibleScanline();
-  void handleBackgroundFetching();
   void handlePreRenderScanline();
   void handleDraw(bool render);
   [[nodiscard]] bool isRendering() const;
