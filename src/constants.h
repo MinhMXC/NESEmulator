@@ -1,6 +1,11 @@
 #ifndef NESEMULATOR_CONSTANTS_H
 #define NESEMULATOR_CONSTANTS_H
 
+#include <cstdint>
+
+typedef uint8_t Byte;
+typedef uint16_t Word;
+
 namespace EmuConst {
   inline constexpr int SCALE_FACTOR = 4;
 

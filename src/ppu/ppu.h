@@ -2,6 +2,7 @@
 #define NESEMULATOR_PPU_H
 
 #include "../display/display.h"
+#include "../constants.h"
 #include <vector>
 #include <cstdint>
 #include <queue>
@@ -11,8 +12,6 @@
  * \note In the case of Background, only the first 4 bit, paletteIndex is used
  */
 using PixelData = uint8_t;
-using Byte = uint8_t;
-using Word = uint16_t;
 
 class Initializer;
 class PPU;
@@ -257,7 +256,7 @@ private:
 
   void handleVisibleScanline();
   void handlePreRenderScanline();
-  void handleDraw(bool render);
+  void handleDraw();
   [[nodiscard]] bool isRendering() const;
 };
 

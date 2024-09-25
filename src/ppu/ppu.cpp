@@ -1,5 +1,4 @@
 #include "ppu.h"
-#include "../constants.h"
 #include "../utils.h"
 #include <cstdio>
 
@@ -32,21 +31,16 @@ void Background::tick() {
   int attrOffset;
 
   nameTableByte = ppu.readMemory(0x2000 | (v & 0x0FFF));
-  if (nameTableByte == 3 && ppu.scanline == 20)
-    int i{};
+  attr = ppu.readMemory(0x23C0 | (v & 0x0C00) | ((v >> 4) & 0x38) | ((v >> 2) & 0x07));
   ptrnTableLow = ppu.readMemory(((ppu.ppuCtrl & 0b10000) << 8) | (nameTableByte << 4) | ((v & 0x7000) >> 12));
   ptrnTableHigh = ppu.readMemory(((ppu.ppuCtrl & 0b10000) << 8) | (nameTableByte << 4) | 0b1000 | ((v & 0x7000) >> 12));
-  attr = ppu.readMemory(0x23C0 | (v & 0x0C00) | ((v >> 4) & 0x38) | ((v >> 2) & 0x07));
 
-  // + 8 because for example, at 8, 0, the pixels from 16-23, 0 is being rendered
-  // so the real cycle is current cycle + 8
-  int offsetX{ ppu.cycle > 321 ? (ppu.cycle - 328) % 32 : (ppu.cycle + 8) % 32 };
-  int offsetY{ ppu.cycle > 321 ? (((ppu.scanline + 1) % 261) % 32) : (ppu.scanline % 32) };
-
-  if (offsetY < 16) // Top
-    attrOffset = offsetX < 16 ? 0 : 2;
-  else // Bottom
-    attrOffset = offsetX < 16 ? 4 : 6;
+  int offsetX{ v % 4 };
+  int offsetY{ (v / 32) % 4 };
+  if (offsetY < 2)
+    attrOffset = offsetX < 2 ? 0 : 2;
+  else
+    attrOffset = offsetX < 2 ? 4 : 6;
 
   attr = (attr & (0b11 << attrOffset)) >> attrOffset;
 
@@ -290,10 +284,6 @@ void PPU::executeNextClock() {
     return;
   }
 
-  if (scanline == 245 && cycle == 50) {
-    int i{};
-  }
-
   switch (scanline) {
     case 0 ... 239:
       handleVisibleScanline();
@@ -399,14 +389,11 @@ void PPU::writeMemory(Word addr, Byte input) {
 
 // internal rendering system
 void PPU::handleVisibleScanline() {
-  if (scanline == 0 && cycle == 1)
-    int i{};
-
   switch (cycle) {
     case 0:
       break;
     case 1 ... 256:
-      handleDraw(true);
+      handleDraw();
       background.tick();
       break;
     case 257:
@@ -416,7 +403,6 @@ void PPU::handleVisibleScanline() {
       }
       break;
     case 321 ... 336:
-      handleDraw(false);
       background.tick();
       break;
       // TODO mmc5 quirk utilise two useless fetch here
@@ -445,7 +431,6 @@ void PPU::handlePreRenderScanline() {
       }
       break;
     case 321 ... 336:
-      handleDraw(false);
       background.tick();
       break;
       // TODO mmc5 quirk utilise two useless fetch here
@@ -456,16 +441,13 @@ void PPU::handlePreRenderScanline() {
 
 // Drawing
 
-void PPU::handleDraw(bool render) {
+void PPU::handleDraw() {
   int bgPixelValue;
   int bgColorMemAddr;
   int priority;
   int spritePixelValue;
   int spriteColorMemAddr;
   Word colorMemAddr{};
-
-  if (!render)
-    return;
 
   const PixelData bg{ background.getPixelData() };
   bgPixelValue = bg & 0b11;
@@ -514,7 +496,7 @@ void PPU::handleDraw(bool render) {
   }
 
   Byte color{ readMemory(colorMemAddr) };
-  display.drawPixel(cycle - 1, scanline, ppuMask & 0b1 ? (color & 0x30) : color );
+  display.drawPixel(cycle - 1, scanline, ppuMask & 0b1 ? (color & 0x30) : color, ppuMask);
 }
 
 
@@ -575,11 +557,17 @@ void PPU::writePPUAddr(Byte val) {
   }
 }
 
-// TODO: Reading Palette RAM quirk
+// Read VRAM, not the entire address space
 Byte PPU::readPPUData() {
   static Byte buffer{};
-  Byte temp{ buffer };
-  buffer = readMemory(v);
+  Byte temp;
+  if (0x3F00 <= v && v <= 0x3FFF) {
+    temp = readMemory(v);
+    buffer = readMemory((v & 0x0FFF) + 0x2000);
+  } else {
+    temp = buffer;
+    buffer = readMemory(v);
+  }
   v += extractBit(ppuCtrl, 2, 2) ? 32 : 1;
   return temp;
 }

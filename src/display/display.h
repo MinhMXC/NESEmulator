@@ -8,7 +8,7 @@ public:
   Display(SDL_Renderer* renderer, SDL_Texture* texture);
   ~Display();
 
-  void drawPixel(int x, int y, int colorIndex);
+  void drawPixel(int x, int y, uint8_t colorIndex, uint8_t ppuMask);
   void updateScreen();
   void clearBuffer();
 
