@@ -9,12 +9,13 @@
 
 /**
  * \brief First 5 bit = paletteIndex, bit 5 = isSprite0, bit 6 = priority, bit 7 = hasBeenWrittenTo
- * \note In the case of Background, only the first 4 bit, paletteIndex is used
+ * \note In the case of Background, only the first 5 bit, paletteIndex is used
  */
 using PixelData = uint8_t;
 
 class Initializer;
 class PPU;
+class DebugDisplay;
 
 /**
  * \brief Class to handle <a href="https://www.nesdev.org/wiki/PPU_OAM">OAM</a> Operations
@@ -193,6 +194,7 @@ class PPU {
   friend class Initializer;
   friend class OAM;
   friend class Background;
+  friend class DebugDisplay;
 
 public:
   explicit PPU(Display& display);
@@ -225,7 +227,7 @@ public:
   bool isEvenFrame;
   int frame;
   bool disableNextNMI;
-  bool nametableArrangement; // 0 = horizontal, 1 = vertical
+  bool nametableArrangement; // 0 = vertical arrangement, 1 = horizontal arrangement
 
   Word v;
 private:

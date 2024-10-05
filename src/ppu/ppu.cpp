@@ -239,7 +239,7 @@ void OAM::evaluateSpriteData(int index) {
         return;
 
       if ((spritePixelData[i] & 0b11) == 0)
-        spritePixelData[i] = 0x90 | ((attr & 0b0010'0000) << 1) | (sprite0 << 5) | ((attr & 0b11) << 2) | ((ptrnTableLow & 0b1) * 1 + (ptrnTableHigh & 0b1) * 2);
+        spritePixelData[i] = 0x90 | ((attr & 0b0010'0000) << 1) | (sprite0 << 5) | 0x10 | ((attr & 0b11) << 2) | ((ptrnTableLow & 0b1) * 1 + (ptrnTableHigh & 0b1) * 2);
 
       ptrnTableLow >>= 1;
       ptrnTableHigh >>= 1;
@@ -247,7 +247,7 @@ void OAM::evaluateSpriteData(int index) {
   } else {
     for (int i{xPos + 7}; i >= xPos; i--) {
       if (i < spritePixelData.size() && (spritePixelData[i] & 0b11) == 0)
-        spritePixelData[i] = 0x90 | ((attr & 0b0010'0000) << 1) | (sprite0 << 5) | ((attr & 0b11) << 2) | ((ptrnTableLow & 0b1) * 1 + (ptrnTableHigh & 0b1) * 2);
+        spritePixelData[i] = 0x90 | ((attr & 0b0010'0000) << 1) | (sprite0 << 5) | 0x10 | ((attr & 0b11) << 2) | ((ptrnTableLow & 0b1) * 1 + (ptrnTableHigh & 0b1) * 2);
 
       ptrnTableLow >>= 1;
       ptrnTableHigh >>= 1;
@@ -451,7 +451,7 @@ void PPU::handleDraw() {
 
   const PixelData bg{ background.getPixelData() };
   bgPixelValue = bg & 0b11;
-  bgColorMemAddr = 0x3F00 | bg;
+  bgColorMemAddr = 0x3F00 | (bg & 0x1F);
 
   const PixelData sprite{oam.getPixelData(cycle - 1) };
   priority = (sprite & 0b0100'0000) >> 6;

@@ -2,4 +2,5 @@
 Catch2/
 SDL2/
 SDL2_image/
+SDL2_ttf/
 cmake-build-debug/

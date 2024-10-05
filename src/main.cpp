@@ -1,4 +1,12 @@
 // #define NDEBUG
+#include <SDL.h>
+#include <SDL_image.h>
+#include <SDL_ttf.h>
+#include <cstdio>
+#include <iostream>
+#include <chrono>
+#include <thread>
+
 #include "constants.h"
 #include "./display/display.h"
 #include "utils.h"
@@ -6,12 +14,6 @@
 #include "cpu/cpu.h"
 #include "initializer/initializer.h"
 #include "display/debug_display.h"
-#include <SDL.h>
-#include <SDL_image.h>
-#include <cstdio>
-#include <iostream>
-#include <chrono>
-#include <thread>
 
 
 int main(int argv, char** args) {
@@ -26,6 +28,10 @@ int main(int argv, char** args) {
 
   if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)) {
     printf("SDL_image could not initialize! SDL_image Error: %s\n", SDL_GetError());
+  }
+
+  if (TTF_Init() == -1) {
+    printf("SDL_ttf could not initialize! SDL_ttf Error: %s\n", SDL_GetError());
   }
 
   // Ignore Scaling
@@ -79,7 +85,7 @@ int main(int argv, char** args) {
   CPU cpu{ppu, inputHandler};
   Initializer initializer{cpu, ppu};
 
-  std::string res{ initializer.loadFile("../test_rom/palette.nes") };
+  std::string res{ initializer.loadFile("../test_rom/supermariobros.nes") };
   if (!res.empty()) {
     printf("Error: %s\n", res.c_str());
   }
@@ -89,8 +95,8 @@ int main(int argv, char** args) {
     "Debug",
     SDL_WINDOWPOS_UNDEFINED,
     SDL_WINDOWPOS_UNDEFINED,
-    EmuConst::SCALED_SCREEN_WIDTH,
-    EmuConst::SCALED_SCREEN_HEIGHT,
+    1028,
+    1100,
     SDL_WINDOW_SHOWN
   );
   if (debugWindow == nullptr) {
@@ -108,8 +114,8 @@ int main(int argv, char** args) {
     debugRenderer,
     SDL_PIXELFORMAT_ARGB8888,
     SDL_TEXTUREACCESS_STREAMING,
-    EmuConst::SCREEN_WIDTH,
-    EmuConst::SCREEN_HEIGHT
+    EmuConst::SCALED_SCREEN_WIDTH,
+    EmuConst::SCALED_SCREEN_HEIGHT
   );
   if (debugTexture == nullptr) {
     printf("Cannot create texture! SDL Error: %s\n", SDL_GetError());
@@ -117,8 +123,6 @@ int main(int argv, char** args) {
   }
 
   DebugDisplay debugDisplay{ppu, debugRenderer, debugTexture};
-
-
 
   // freopen("log.txt", "w", stdout);
 
@@ -149,7 +153,7 @@ int main(int argv, char** args) {
 
     inputHandler.resetRead();
 
-     debugDisplay.updateScreen();
+    debugDisplay.updateScreen();
 
     // Handle Event
     while (SDL_PollEvent(&e)) {
@@ -210,7 +214,7 @@ int main(int argv, char** args) {
 
     using namespace std::chrono_literals;
 
-    std::this_thread::sleep_until(start + 16.6ms);
+    // std::this_thread::sleep_until(start + 15.6ms);
 
     auto end{ std::chrono::system_clock::now() };
     // printf("%lld\n", std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
