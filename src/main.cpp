@@ -85,7 +85,7 @@ int main(int argv, char** args) {
   CPU cpu{ppu, inputHandler};
   Initializer initializer{cpu, ppu};
 
-  std::string res{ initializer.loadFile("../test_rom/supermariobros.nes") };
+  std::string res{ initializer.loadFile("../test_rom/passed/full_palette.nes") };
   if (!res.empty()) {
     printf("Error: %s\n", res.c_str());
   }
@@ -125,7 +125,6 @@ int main(int argv, char** args) {
   DebugDisplay debugDisplay{ppu, debugRenderer, debugTexture};
 
   // freopen("log.txt", "w", stdout);
-
 
   cpu.executeStartUpSequence();
 

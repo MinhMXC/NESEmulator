@@ -18,7 +18,7 @@ void CPU::executeNextClock() {
 
   // Real Operation
   // Checking for NMI
-  // ppu cycle must be larger than 2 because 0 & 1 cycle does not generate NMI so
+  // ppu cycle must be larger than 2 because 0 & 1 & 2 cycle does not generate NMI so
   // the 2 cycle instruction still execute as per usual (instruction for 2 cycle is fetched at the 1 cycle)
   // NMI is only checked at instruction fetching
   if ((ppu.readPPUStatusNoSideEffect() & 0b1000'0000) && (ppu.readPPUCtrlNoSideEffect() & 0b1000'0000) && !isNMIHappening && ppu.cycle > 2) {
@@ -38,10 +38,7 @@ void CPU::executeNextClock() {
     isNMIHappening = false;
   }
 
-  if (totalCycle > 831547)
-    int i{};
-
-  // printf("%04X  %02X %02X %02X   A:%02X X:%02X Y:%02X P:%02X SP:%02X   PPU:%03d,%03d  CYC: %llu  Frame: %d  v = %04X\n", programCounter, memory[programCounter], memory[programCounter + 1], memory[programCounter + 2], accumulator, x, y, convertFlag(), stackPointer, ppu.cycle + 1, ppu.scanline, totalCycle, ppu.frame, ppu.v);
+  // printf("%04X  %02X %02X %02X   A:%02X X:%02X Y:%02X P:%02X SP:%02X   PPU:%03d,%03d  CYC: %llu  Frame: %d  v = %04X\n", programCounter, memory[programCounter], memory[programCounter + 1], memory[programCounter + 2], accumulator, x, y, convertFlag(), stackPointer, ppu.cycle, ppu.scanline, totalCycle + 1, ppu.frame, ppu.v);
 
   OpInfo op{ opInfo[memory[programCounter]] };
   totalCycle += op.cycle;

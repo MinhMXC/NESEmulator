@@ -134,6 +134,11 @@ private:
   int readOffset;
 
   /**
+   * \brief The number of PPU cycle that the OAM Evaluation rests to emulate real behaviours
+   */
+  int oamRest;
+
+  /**
    * \brief Store the OAM Data read on odd cycle
    */
    Byte isSecondaryOamClearing;
@@ -259,7 +264,7 @@ private:
   void handleVisibleScanline();
   void handlePreRenderScanline();
   void handleDraw();
-  [[nodiscard]] bool isRendering() const;
+  [[nodiscard]] bool isRenderingEnabled() const;
 };
 
 #endif

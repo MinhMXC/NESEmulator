@@ -18,10 +18,32 @@ PixelData Background::getPixelData() {
 }
 
 void Background::tick() {
-  if (!ppu.isRendering())
+  if (!ppu.isRenderingEnabled())
     return;
 
-  if (ppu.cycle % 8 != 0)
+  // At the end clear queue and update v
+  if (ppu.cycle == 255) {
+    if ((v & 0x7000) != 0x7000) {
+      v += 0x1000;
+    } else {
+      v &= 0x8FFF;
+
+      Byte coarseY{static_cast<Byte>((v & 0x3E0) >> 5) };
+      if (coarseY == 29) {
+        coarseY = 0;
+        v ^= 0x0800;
+      } else if (coarseY == 31) {
+        coarseY = 0;
+      } else {
+        coarseY += 1;
+      }
+      v = (v & ~0x03E0) | (coarseY << 5);
+    }
+
+    backgroundPixelData.clear();
+  }
+
+  if (ppu.cycle % 8 != 1)
     return;
 
   Byte nameTableByte;
@@ -56,28 +78,6 @@ void Background::tick() {
     v ^= 0x0400;
   } else {
     v++;
-  }
-
-  // At the end clear queue and update v
-  if (ppu.cycle == 256) {
-    if ((v & 0x7000) != 0x7000) {
-      v += 0x1000;
-    } else {
-      v &= 0x8FFF;
-
-      Byte coarseY{static_cast<Byte>((v & 0x3E0) >> 5) };
-      if (coarseY == 29) {
-        coarseY = 0;
-        v ^= 0x0800;
-      } else if (coarseY == 31) {
-        coarseY = 0;
-      } else {
-        coarseY += 1;
-      }
-      v = (v & ~0x03E0) | (coarseY << 5);
-    }
-
-    backgroundPixelData.clear();
   }
 }
 
@@ -115,7 +115,7 @@ void OAM::DMA(std::vector<Byte>& cpuMem, Byte input) {
 }
 
 void OAM::tick() {
-  if (!ppu.isRendering()) {
+  if (!ppu.isRenderingEnabled()) {
     return;
   }
 
@@ -135,6 +135,7 @@ void OAM::tick() {
         spriteEvaluationEnd = false;
         secondaryOamAddr = 0;
         readOffset = 0;
+        oamRest = 0;
       }
       break;
     case 65 ... 256:
@@ -154,26 +155,39 @@ void OAM::tick() {
 }
 
 void OAM::evaluateOAM() {
-  const Byte current{ oam[oamAddr] };
+  if (oamRest) {
+    oamRest--;
+    return;
+  }
 
   if (secondaryOamAddr == 32) { // Sprite Overflow Process
+    Byte current{ oam[oamAddr + readOffset] };
+
     // Current scanline is in range of sprite
-    if (current <= ppu.scanline && ppu.scanline < oam[oamAddr + readOffset] + (((ppu.ppuCtrl & 0b0010'0000) >> 5) + 1) * 8) {
+    if (current <= ppu.scanline && ppu.scanline < current + (((ppu.ppuCtrl & 0b0010'0000) >> 5) + 1) * 8) {
       ppu.ppuStatus |= 0b0010'0000;
       readOffset += 4;
       if (readOffset >= 4) {
         readOffset %= 4;
         oamAddr += 4;
       }
+
+      // 8 total cycle needed trying to read full sprite Oam (-1 to account for current cycle)
+      oamRest = 7;
     } else {
       oamAddr += 4;
       readOffset++;
       readOffset %= 4;
+
+      // 2 total cycle needed trying to read y axis value Oam (-1 to account for current cycle)
+      oamRest = 1;
     }
 
     if (oamAddr == 0)
       spriteEvaluationEnd = true;
   } else { // Normal Sprite Evaluation Process
+    Byte current{ oam[oamAddr] };
+
     // Current scanline is in range of sprite
     if (current <= ppu.scanline && ppu.scanline < current + (((ppu.ppuCtrl & 0b0010'0000) >> 5) + 1) * 8) {
       secondaryOam[secondaryOamAddr + 0] = current;
@@ -182,9 +196,19 @@ void OAM::evaluateOAM() {
       secondaryOam[secondaryOamAddr + 3] = oam[oamAddr + 3];
 
       secondaryOamAddr += 4;
+      oamAddr += 4;
+
+      // 8 total cycle needed to put a sprite in secondaryOam (-1 to account for current cycle)
+      oamRest = 7;
+    } else {
+      oamAddr += 4;
+
+      // 2 total cycle needed trying to read y axis value Oam (-1 to account for current cycle)
+      oamRest = 1;
     }
 
-    oamAddr += 4;
+    if (oamAddr == 0)
+      spriteEvaluationEnd = true;
   }
 }
 
@@ -221,7 +245,7 @@ void OAM::evaluateSpriteData(int index) {
     else
       ptrnLocation = row > 7
                      ? (bank << 12) | ((tileNumber + 1) << 4) | (row - 8)
-                     : (bank << 12) | ((tileNumber + 1) << 4) | 0b1000 | (row - 8);
+                     : (bank << 12) | (tileNumber << 4) | row;
 
   } else {
     ptrnLocation = attr & 0b1000'0000
@@ -309,7 +333,7 @@ void PPU::executeNextClock() {
       handlePreRenderScanline();
 
       // Jump to (0, 0) on odd frames
-      if (isRendering() && cycle == 340 && !isEvenFrame) {
+      if (isRenderingEnabled() && cycle == 340 && !isEvenFrame) {
         cycle = 0;
         scanline = 0;
         isEvenFrame = !isEvenFrame;
@@ -397,7 +421,7 @@ void PPU::handleVisibleScanline() {
       background.tick();
       break;
     case 257:
-      if (isRendering()) {
+      if (isRenderingEnabled()) {
         v &= 0x7BE0;
         v |= (t & 0x41F);
       }
@@ -418,14 +442,14 @@ void PPU::handlePreRenderScanline() {
     case 0 ... 256:
       break;
     case 257:
-      if (isRendering()) {
+      if (isRenderingEnabled()) {
         v &= 0x7BE0;
         v |= (t & 0x41F);
       }
       background.clearDeque();
       break;
     case 280 ... 304:
-      if (isRendering()) {
+      if (isRenderingEnabled()) {
         v &= 0x41F;
         v |= (t & 0x7BE0);
       }
@@ -453,7 +477,7 @@ void PPU::handleDraw() {
   bgPixelValue = bg & 0b11;
   bgColorMemAddr = 0x3F00 | (bg & 0x1F);
 
-  const PixelData sprite{oam.getPixelData(cycle - 1) };
+  const PixelData sprite{ oam.getPixelData(cycle - 1) };
   priority = (sprite & 0b0100'0000) >> 6;
   spritePixelValue = sprite & 0b11;
   spriteColorMemAddr = 0x3F00 | (sprite & 0x1F);
@@ -477,11 +501,11 @@ void PPU::handleDraw() {
     } else if ((bgPixelValue > 0) && (spritePixelValue == 0)) {
       colorMemAddr = bgColorMemAddr;
     } else if ((bgPixelValue > 0) && (spritePixelValue > 0) && (priority == 0)) {
-      if (sprite & 0b0010'0000)
+      if ((sprite & 0b0010'0000) && cycle < 256) // sprite0 hit ignored beyond and include x = 255
         ppuStatus |= 0b0100'0000;
       colorMemAddr = spriteColorMemAddr;
     } else if ((bgPixelValue > 0) && (spritePixelValue > 0) && (priority == 1)) {
-      if (sprite & 0b0010'0000)
+      if ((sprite & 0b0010'0000) && cycle < 256) // sprite0 hit ignored beyond and include x = 255
         ppuStatus |= 0b0100'0000;
       colorMemAddr = bgColorMemAddr;
     } else {
@@ -495,8 +519,15 @@ void PPU::handleDraw() {
     colorMemAddr = 0x3F00;
   }
 
-  Byte color{ readMemory(colorMemAddr) };
-  display.drawPixel(cycle - 1, scanline, ppuMask & 0b1 ? (color & 0x30) : color, ppuMask);
+  Byte color{ readMemory(!isRenderingEnabled() && ((v & 0xF000) == 0x3000) ? v : colorMemAddr) };
+  if (ppuMask & 0b1)
+    color &= 0x30;
+
+  display.drawPixel(cycle - 1, scanline, color, ppuMask);
+
+  if (scanline == 202 && cycle == 255) {
+    int i{};
+  }
 }
 
 
@@ -513,11 +544,20 @@ void PPU::writePPUMask(Byte val) {
 }
 
 Byte PPU::readPPUStatus() {
-  Byte temp{ppuStatus };
+  Byte temp{ppuStatus};
   clearBit(ppuStatus, 7, 7);
   w = 0;
-  if (scanline == 240 && cycle == 340)
+
+  if (scanline == 241 && cycle == 0) {
     disableNextNMI = true;
+    return temp;
+  }
+
+  if (scanline == 241 && (cycle == 1 || cycle == 2)) {
+    disableNextNMI = true;
+    return temp | 0b1000'0000;
+  }
+
   return temp;
 }
 
@@ -581,8 +621,8 @@ void PPU::writeOAMDma(std::vector<Byte>& cpuMem, Byte input) {
   oam.DMA(cpuMem, input);
 }
 
-bool PPU::isRendering() const {
-  return ppuMask & 0b0001'0000 || ppuMask & 0b0000'1000;
+bool PPU::isRenderingEnabled() const {
+  return (ppuMask & 0b0001'0000) || (ppuMask & 0b0000'1000);
 }
 
 Byte PPU::readPPUStatusNoSideEffect() const {
