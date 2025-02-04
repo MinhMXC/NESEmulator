@@ -134,7 +134,7 @@ public:
     if (chrRomSize == 1) {
       for (int i{}; i < 0x2000; i++) {
         file.read(reinterpret_cast<char*>(&current), 1);
-        ppu.memory[i] = current;
+        // ppu.memory[i] = current;
       }
     } else {
       if (chrRomSize != 0)

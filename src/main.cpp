@@ -9,11 +9,11 @@
 
 #include "constants.h"
 #include "./display/display.h"
-#include "utils.h"
 #include "ppu/ppu.h"
 #include "cpu/cpu.h"
 #include "initializer/initializer.h"
 #include "display/debug_display.h"
+#include "mapper/createMapper.h"
 
 
 int main(int argv, char** args) {
@@ -79,16 +79,22 @@ int main(int argv, char** args) {
     return -1;
   }
 
-  Display display{renderer, texture};
-  PPU ppu{display};
-  InputHandler inputHandler{};
-  CPU cpu{ppu, inputHandler};
-  Initializer initializer{cpu, ppu};
-
-  std::string res{ initializer.loadFile("../test_rom/passed/full_palette.nes") };
-  if (!res.empty()) {
-    printf("Error: %s\n", res.c_str());
+  std::string filePath{ "../test_rom/kungfu.nes" };
+  Mapper* mapper = createMapper(filePath);
+  if (mapper == nullptr) {
+    printf("Mapper Not Supported\n");
+    return 1;
   }
+  std::string res{ mapper->initialise(filePath) };
+  if (!res.empty()) {
+    std::cout << res;
+    return 1;
+  }
+
+  Display display{renderer, texture};
+  PPU ppu{display, (*mapper)};
+  InputHandler inputHandler{};
+  CPU cpu{ppu, (*mapper), inputHandler};
 
   // Debug Screen
   SDL_Window* debugWindow = SDL_CreateWindow(
@@ -158,29 +164,6 @@ int main(int argv, char** args) {
     while (SDL_PollEvent(&e)) {
       inputHandler.handleEvent(e);
 
-      if (e.key.keysym.sym == SDLK_0 && e.type == SDL_KEYDOWN) {
-        for (int i{0x2000}; i < 0x23C0; i++) {
-          if (i % 0x20 == 0)
-            printf("\n");
-          printf("%02X ", ppu.memory[i]);
-        }
-
-        printf("\n");
-
-        for (int i{0x23C0}; i < 0x2400; i++) {
-          if (i % 0x08 == 0)
-            printf("\n");
-          printf("%02X ", ppu.memory[i]);
-        }
-
-        printf("\n");
-//
-//        for (int i{}; i < 256; i++) {
-//          if (i % 0x10 == 0)
-//            printf("\n");
-//          printf("%02X ", ppu.oam[i]);
-//        }
-      }
 
       if (e.type == SDL_WINDOWEVENT && e.window.event == SDL_WINDOWEVENT_CLOSE) {
         quit = true;

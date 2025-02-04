@@ -2,51 +2,50 @@
 #include <cstdio>
 
 // Main Operation
-CPU::CPU(PPU& ppu, InputHandler& inputHandler) : ppu{ppu}, inputHandler{inputHandler},
-memory(0xFFFF), programCounter{}, stackPointer{}, accumulator{}, x{}, y{},
-carry{}, zero{}, interruptDisable{}, decimal{}, breakCommand{}, overflow{}, negative{},
+CPU::CPU(PPU& ppu, Mapper& mapper, InputHandler& inputHandler) : ppu{ppu}, inputHandler{inputHandler}, mapper{mapper},
+memory(0x4020), oamData(0x100), programCounter{}, stackPointer{}, accumulator{}, x{}, y{},
+carry{}, zero{}, interruptDisable{}, decimal{}, breakCommand{}, overflow{}, negative{}, nmiHappening{}, stackBeforeNMI{},
 cycle{}, totalCycle{7} {}
 
 void CPU::executeStartUpSequence() {
-  programCounter = memory[0xFFFC] + (memory[0xFFFC + 1] << 8);
+  programCounter = readMemory(0xFFFC) + (readMemory(0xFFFC + 1) << 8);
   stackPointer -= 3;
   interruptDisable = true;
 }
 
 void CPU::executeNextClock() {
-  static bool isNMIHappening{false};
-
   // Real Operation
-  // Checking for NMI
-  // ppu cycle must be larger than 2 because 0 & 1 & 2 cycle does not generate NMI so
-  // the 2 cycle instruction still execute as per usual (instruction for 2 cycle is fetched at the 1 cycle)
-  // NMI is only checked at instruction fetching
-  if ((ppu.readPPUStatusNoSideEffect() & 0b1000'0000) && (ppu.readPPUCtrlNoSideEffect() & 0b1000'0000) && !isNMIHappening && ppu.cycle > 2) {
-    memory[0x100 + stackPointer] = programCounter >> 8;
-    memory[0x100 + static_cast<Byte>(stackPointer - 1)] = programCounter;
-    memory[0x100 + static_cast<Byte>(stackPointer - 2)] = convertFlag();
+
+  // Checking for NMI (must not already be in NMI), only done at instruction fetching
+  if (!nmiHappening && ppu.vBlank()) {
+    stackBeforeNMI = stackPointer;
+    nmiHappening = true;
+
+    writeMemory(0x100 + stackPointer, programCounter >> 8);
+    writeMemory(0x100 + static_cast<Byte>(stackPointer - 1), programCounter);
+    writeMemory(0x100 + static_cast<Byte>(stackPointer - 2), convertFlag());
     stackPointer -= 3;
-    programCounter = memory[0xFFFA] + (memory[0xFFFB] << 8);
+    programCounter = readMemory(0xFFFA) + (readMemory(0xFFFB) << 8);
     totalCycle += 7;
     for (int i{}; i < 21; i++)
       ppu.executeNextClock();
-    isNMIHappening = true;
     return;
   }
 
-  if (isNMIHappening && !(ppu.readPPUStatusNoSideEffect() & 0b1000'0000)) {
-    isNMIHappening = false;
+  // Set nmiHappening to false when at pre-render scanline
+  if (nmiHappening && ppu.scanline == 261) {
+    nmiHappening = false;
   }
 
-  // printf("%04X  %02X %02X %02X   A:%02X X:%02X Y:%02X P:%02X SP:%02X   PPU:%03d,%03d  CYC: %llu  Frame: %d  v = %04X\n", programCounter, memory[programCounter], memory[programCounter + 1], memory[programCounter + 2], accumulator, x, y, convertFlag(), stackPointer, ppu.cycle, ppu.scanline, totalCycle + 1, ppu.frame, ppu.v);
+  // printf("%04X  %02X %02X %02X   A:%02X X:%02X Y:%02X P:%02X SP:%02X   PPU:%03d,%03d  CYC: %llu  Frame: %d  v = %04X\n", programCounter, readMemory(programCounter), readMemory(programCounter + 1), readMemory(programCounter + 2), accumulator, x, y, convertFlag(), stackPointer, ppu.cycle + 1, ppu.scanline, totalCycle, ppu.frame, ppu.v);
 
-  OpInfo op{ opInfo[memory[programCounter]] };
+  OpInfo op{ opInfo[readMemory(programCounter)] };
   totalCycle += op.cycle;
 
   for (int i{}; i < op.cycle * 3; i++)
     ppu.executeNextClock();
 
-  bool res = executeOp(memory[programCounter], memory[programCounter + 1], memory[programCounter + 2]);
+  bool res = executeOp(readMemory(programCounter), readMemory(programCounter + 1), readMemory(programCounter + 2));
 
   for (int i{}; i < cycle * 3; i++)
     ppu.executeNextClock();
@@ -55,14 +54,6 @@ void CPU::executeNextClock() {
 
   if (res)
     programCounter += op.length;
-
-
-  // Testing
-//  OpInfo op{ opInfo[memory[programCounter]] };
-//  cycle = op.cycle;
-//  bool res = executeOp(memory[programCounter], memory[programCounter + 1], memory[programCounter + 2]);
-//  if (res)
-//    programCounter += op.length;
 }
 
 
@@ -85,10 +76,10 @@ Byte CPU::readMemory(Word addr) {
           printf("readMemory PPU default encountered!\n");
           return 0;
       }
-    case 0x4000 ... 0x4017:
+    case 0x4000 ... 0x401F:
       switch (addr % 0x4000) {
         case 0x16:
-            return inputHandler.readInput();
+          return inputHandler.readInput();
         case 0x17:
           return inputHandler.readInput();
         default:
@@ -96,7 +87,7 @@ Byte CPU::readMemory(Word addr) {
       }
       return 0;
     default:
-      return memory[addr];
+      return mapper.readCPUMemory(addr);
   }
 }
 
@@ -134,10 +125,13 @@ void CPU::writeMemory(Word addr, Byte input) {
           break;
       }
       break;
-    case 0x4000 ... 0x4017:
+    case 0x4000 ... 0x401F:
       switch (addr % 0x4000) {
         case 0x14:
-          ppu.writeOAMDma(memory, input);
+          for (int i{ input * 0x100 }; i < (input + 1) * 0x100; i++) {
+            oamData[i % 0x100] = readMemory(i);
+          }
+          ppu.writeOAMDma(oamData);
           cycle += totalCycle % 2 == 1 ? 513 : 514;
           break;
         case 0x16:
@@ -148,13 +142,10 @@ void CPU::writeMemory(Word addr, Byte input) {
           break;
         default:
           break;
-          //printf("%#04X\n", addr);
-          //printf("APU IO write encountered\n");
       }
       break;
     default:
-      memory[addr] = input;
-      // printf("writeMemory default encountered @ %04X!\n", addr);
+      mapper.writeCPUMemory(addr, input);
       break;
   }
 }
@@ -923,8 +914,8 @@ bool CPU::executeOp(Byte op, Byte arg1, Byte arg2) {
 
     // JSR
     case 0x20:
-      memory[0x100 + stackPointer] = (programCounter + 2) >> 8;
-      memory[0x100 + static_cast<Byte>(stackPointer - 1)] = (programCounter + 2);
+      writeMemory(0x100 + stackPointer, (programCounter + 2) >> 8);
+      writeMemory(0x100 + static_cast<Byte>(stackPointer - 1), programCounter + 2);
       stackPointer -= 2;
       programCounter = arg1 + (arg2 << 8);
       return false;
@@ -932,9 +923,9 @@ bool CPU::executeOp(Byte op, Byte arg1, Byte arg2) {
     // RTS
     case 0x60:
     {
-      const Word addr{static_cast<Word>(memory[0x100 + static_cast<Byte>(stackPointer + 1)] + (memory[0x100 + static_cast<Byte>(stackPointer + 2)] << 8)) };
-      memory[0x100 + static_cast<Byte>(stackPointer + 1)] = 0;
-      memory[0x100 + static_cast<Byte>(stackPointer + 2)] = 0;
+      const Word addr{static_cast<Word>(readMemory(0x100 + static_cast<Byte>(stackPointer + 1)) + (readMemory(0x100 + static_cast<Byte>(stackPointer + 2)) << 8)) };
+      writeMemory(0x100 + static_cast<Byte>(stackPointer + 1), 0);
+      writeMemory(0x100 + static_cast<Byte>(stackPointer + 2), 0);
       stackPointer += 2;
       programCounter = addr + 1;
     }
@@ -1046,10 +1037,9 @@ bool CPU::executeOp(Byte op, Byte arg1, Byte arg2) {
     // BRK
     case 0x00:
       breakCommand = true;
-      memory[0x100 + stackPointer] = programCounter >> 8;
-      memory[0x100 + static_cast<Byte>(stackPointer - 1)] = programCounter;
-      memory[0x100 + static_cast<Byte>(stackPointer - 2)] = convertFlag();
-      memory[0x100 + static_cast<Byte>(stackPointer - 2)] |= 0b0001'0000;
+      writeMemory(0x100 + stackPointer, programCounter >> 8);
+      writeMemory(0x100 + static_cast<Byte>(stackPointer - 1), programCounter);
+      writeMemory(0x100 + static_cast<Byte>(stackPointer - 2), convertFlag() | 0b0001'0000);
       stackPointer -= 3;
       return false;
 
@@ -1061,13 +1051,13 @@ bool CPU::executeOp(Byte op, Byte arg1, Byte arg2) {
 
     // RTI
     case 0x40:
-      writeFlag(memory[0x100 + static_cast<Byte>(stackPointer + 1)]);
+      writeFlag(readMemory(0x100 + static_cast<Byte>(stackPointer + 1)));
       programCounter = 0;
-      programCounter += memory[0x100 + static_cast<Byte>(stackPointer + 2)];
-      programCounter += (memory[0x100 + static_cast<Byte>(stackPointer + 3)]) << 8;
-      memory[0x100 + static_cast<Byte>(stackPointer + 1)] = 0;
-      memory[0x100 + static_cast<Byte>(stackPointer + 2)] = 0;
-      memory[0x100 + static_cast<Byte>(stackPointer + 3)] = 0;
+      programCounter += readMemory(0x100 + static_cast<Byte>(stackPointer + 2));
+      programCounter += readMemory(0x100 + static_cast<Byte>(stackPointer + 3)) << 8;
+      writeMemory(0x100 + static_cast<Byte>(stackPointer + 1), 0);
+      writeMemory(0x100 + static_cast<Byte>(stackPointer + 2), 0);
+      writeMemory(0x100 + static_cast<Byte>(stackPointer + 3), 0);
       stackPointer += 3;
       return false;
     default:

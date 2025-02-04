@@ -3,6 +3,7 @@
 
 #include "../ppu/ppu.h"
 #include "../input_handler/input_handler.h"
+#include "../mapper/mapper.h"
 #include <vector>
 #include <cstdint>
 #include <cmath>
@@ -22,7 +23,7 @@ class Initializer;
 class CPU {
 public:
   friend class Initializer;
-  explicit CPU(PPU& ppu, InputHandler& inputHandler);
+  explicit CPU(PPU& ppu, Mapper& mapper, InputHandler& inputHandler);
 
   void executeStartUpSequence();
   void executeNextClock();
@@ -31,6 +32,7 @@ public:
   std::vector<Byte> memory;
 private:
   PPU& ppu;
+  Mapper& mapper;
   InputHandler& inputHandler;
 
   static constexpr OpInfo opInfo[256] = {
@@ -71,8 +73,13 @@ private:
   bool overflow;
   bool negative;
 
+  // NMI
+  bool nmiHappening;
+  int stackBeforeNMI;
+
   // Emulation
   int cycle;
+  std::vector<Byte> oamData;
 
   // Main Operation
   bool executeOp(Byte op, Byte arg1, Byte arg2);

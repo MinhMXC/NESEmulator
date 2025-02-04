@@ -2,13 +2,15 @@
 #include "../utils.h"
 #include <cstdio>
 
-Background::Background(PPU &ppu) : ppu{ppu}, v{ppu.v} {}
 
-void Background::clearDeque() {
+
+PPU::Background::Background(PPU& ppu) : ppu{ppu}, v{ppu.v} {}
+
+void PPU::Background::clearDeque() {
   backgroundPixelData.clear();
 }
 
-PixelData Background::getPixelData() {
+PixelData PPU::Background::getPixelData() {
   if (backgroundPixelData.empty())
     return 0;
 
@@ -17,7 +19,7 @@ PixelData Background::getPixelData() {
   return temp;
 }
 
-void Background::tick() {
+void PPU::Background::tick() {
   if (!ppu.isRenderingEnabled())
     return;
 
@@ -83,38 +85,38 @@ void Background::tick() {
 
 
 
-OAM::OAM(PPU& ppu) : ppu{ppu}, oam(0x100, 0xFF), secondaryOam(0x20, 0xFF),
+PPU::OAM::OAM(PPU& ppu) : ppu{ppu}, oam(0x100, 0xFF), secondaryOam(0x20, 0xFF),
 spritePixelData(EmuConst::SCREEN_WIDTH), oamAddr{}, isSecondaryOamClearing{}, secondaryOamAddr{},
-spriteEvaluationEnd{}, readOffset{} {}
+spriteEvaluationEnd{}, readOffset{}, oamRest{} {}
 
-Byte OAM::getPixelData(int x) {
-  Byte temp{ spritePixelData[x] };
-  spritePixelData[x] = 0;
+Byte PPU::OAM::getPixelData(int addr) {
+  Byte temp{ spritePixelData[addr] };
+  spritePixelData[addr] = 0;
   return temp;
 }
 
-void OAM::writeOAMAddr(Byte input) {
+void PPU::OAM::writeOAMAddr(Byte input) {
   oamAddr = input;
 }
 
-Byte OAM::readOAMData() {
+Byte PPU::OAM::readOAMData() const {
   return isSecondaryOamClearing ? 0xFF : oam[oamAddr];
 }
 
-void OAM::writeOAMData(Byte input) {
+void PPU::OAM::writeOAMData(Byte input) {
   oam[oamAddr] = oamAddr % 4 == 2 ? input & 0b1110'0011 : input;
   oamAddr++;
 }
 
-void OAM::DMA(std::vector<Byte>& cpuMem, Byte input) {
+void PPU::OAM::DMA(std::vector<Byte>& data) {
   Byte writeAddr{ oamAddr };
-  for (int i{ input * 256 }; i <= input * 256 + 255; i++) {
-    oam[writeAddr] = cpuMem[i];
+  for (Byte b : data) {
+    oam[writeAddr] = b;
     writeAddr++;
   }
 }
 
-void OAM::tick() {
+void PPU::OAM::tick() {
   if (!ppu.isRenderingEnabled()) {
     return;
   }
@@ -154,7 +156,7 @@ void OAM::tick() {
   }
 }
 
-void OAM::evaluateOAM() {
+void PPU::OAM::evaluateOAM() {
   if (oamRest) {
     oamRest--;
     return;
@@ -212,7 +214,7 @@ void OAM::evaluateOAM() {
   }
 }
 
-void OAM::evaluateSpriteData(int index) {
+void PPU::OAM::evaluateSpriteData(int index) {
   int yPos{ secondaryOam[index * 4] };
   int patternIndex{ secondaryOam[index * 4 + 1] };
   int attr{ secondaryOam[index * 4 + 2] };
@@ -281,9 +283,9 @@ void OAM::evaluateSpriteData(int index) {
 
 
 
-PPU::PPU(Display& display) : memory(0x4000),
-ppuCtrl{}, ppuMask{}, ppuStatus{}, v{}, t{}, x{}, w{}, cycle{-1}, scanline{-1}, isEvenFrame{false},
-display{display}, first{true}, frame{-1}, disableNextNMI{false},
+PPU::PPU(Display& display, Mapper& mapper) : display{display}, mapper{mapper}, paletteMemory(0x20, 0),
+ppuCtrl{}, ppuMask{}, ppuStatus{}, v{}, t{}, x{}, w{},
+cycle{-1}, scanline{-1}, isEvenFrame{}, first{true}, frame{-1}, disableNextNMI{},
 nametableArrangement{}, oam{*this}, background{*this} {}
 
 void PPU::executeNextClock() {
@@ -315,7 +317,7 @@ void PPU::executeNextClock() {
     case 240:
       break;
     case 241:
-      if (cycle == 1) {
+      if (cycle == 3) {
         if (!disableNextNMI) {
           display.updateScreen();
           display.clearBuffer();
@@ -344,59 +346,24 @@ void PPU::executeNextClock() {
   }
 }
 
-Word PPU::mapMemory(Word addr) const {
+Word PPU::mapPaletteMemory(Word addr) const {
+  addr %= 0x20;
+
   switch (addr) {
-    case 0x2000 ... 0x2FFF:
-      if (nametableArrangement) { // Vertical Mirroring
-        switch (addr) {
-          case 0x2000 ... 0x27FF:
-            addr = addr;
-            break;
-          case 0x2800 ... 0x2FFF:
-            addr -= 0x800;
-            break;
-          default:
-            printf("vertical Mirroring default encountered!\n");
-        }
-      } else { // Horizontal Mirroring
-        switch (addr) {
-          case 0x2000 ... 0x23FF:
-            addr = addr;
-            break;
-          case 0x2400 ... 0x27FF:
-            addr -= 0x400;
-            break;
-          case 0x2800 ... 0x2BFF:
-            addr = addr;
-            break;
-          case 0x2C00 ... 0x2FFF:
-            addr -= 0x400;
-            break;
-          default:
-            printf("horizontal Mirroring default encountered! @ %04X\n", addr);
-        }
-      }
+    case 0x10:
+      addr = 0x00;
       break;
-    case 0x3F00 ... 0x3FFF:
-      switch (addr % 0x20) {
-        case 0x10:
-          addr = 0x3F00;
-          break;
-        case 0x14:
-          addr = 0x3F04;
-          break;
-        case 0x18:
-          addr = 0x3F08;
-          break;
-        case 0x1C:
-          addr = 0x3F0C;
-          break;
-        default:
-          addr = 0x3F00 + addr % 0x20;
-          break;
-      }
+    case 0x14:
+      addr = 0x04;
+      break;
+    case 0x18:
+      addr = 0x08;
+      break;
+    case 0x1C:
+      addr = 0x0C;
       break;
     default:
+      addr = addr;
       break;
   }
 
@@ -404,11 +371,21 @@ Word PPU::mapMemory(Word addr) const {
 }
 
 Byte PPU::readMemory(Word addr) {
-  return memory[mapMemory(addr)];
+  addr %= 0x4000;
+  if (0x3F00 <= addr && addr <= 0x3FFF) {
+    return paletteMemory[mapPaletteMemory(addr)];
+  } else {
+    return mapper.readPPUMemory(addr);
+  }
 }
 
 void PPU::writeMemory(Word addr, Byte input) {
-  memory[mapMemory(addr)] = input;
+  addr %= 0x4000;
+  if (0x3F00 <= addr && addr <= 0x3FFF) {
+    paletteMemory[mapPaletteMemory(addr)] = input;
+  } else {
+    mapper.writePPUMemory(addr, input);
+  }
 }
 
 // internal rendering system
@@ -519,21 +496,27 @@ void PPU::handleDraw() {
     colorMemAddr = 0x3F00;
   }
 
-  Byte color{ readMemory(!isRenderingEnabled() && ((v & 0xF000) == 0x3000) ? v : colorMemAddr) };
+  Byte color{ readMemory(!isRenderingEnabled() && ((v & 0xFF00) == 0x3F00) ? v : colorMemAddr) };
   if (ppuMask & 0b1)
     color &= 0x30;
 
-  display.drawPixel(cycle - 1, scanline, color, ppuMask);
-
-  if (scanline == 202 && cycle == 255) {
+  if (scanline == 219 && cycle == 10) {
     int i{};
   }
+
+  display.drawPixel(cycle - 1, scanline, color, ppuMask);
 }
 
 
 // Register stuff
 
 // For CPU access
+bool PPU::vBlank() const {
+  // ppu cycle must be larger than 2 because 0 & 1 & 2 cycle does not generate NMI so
+  // the 2 cycle instruction still execute as per usual (instruction for 2 cycle is fetched at the 1 cycle)
+  return (ppuStatus & 0b1000'0000) && (ppuCtrl & 0b1000'0000) && cycle > 2;
+}
+
 void PPU::writePPUCtrl(Byte val) {
   setBit(t, 10, 11, extractBit(val, 0, 1));
   ppuCtrl = val;
@@ -565,7 +548,7 @@ void PPU::writeOAMAddr(Byte val) {
   oam.writeOAMAddr(val);
 }
 
-Byte PPU::readOAMData() {
+Byte PPU::readOAMData() const {
   return oam.readOAMData();
 }
 
@@ -617,18 +600,10 @@ void PPU::writePPUData(Byte val) {
   v += extractBit(ppuCtrl, 2, 2) ? 32 : 1;
 }
 
-void PPU::writeOAMDma(std::vector<Byte>& cpuMem, Byte input) {
-  oam.DMA(cpuMem, input);
+void PPU::writeOAMDma(std::vector<Byte>& data) {
+  oam.DMA(data);
 }
 
 bool PPU::isRenderingEnabled() const {
   return (ppuMask & 0b0001'0000) || (ppuMask & 0b0000'1000);
-}
-
-Byte PPU::readPPUStatusNoSideEffect() const {
-  return ppuStatus;
-}
-
-Byte PPU::readPPUCtrlNoSideEffect() const {
-  return ppuCtrl;
 }

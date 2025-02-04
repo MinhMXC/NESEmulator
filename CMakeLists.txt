@@ -33,6 +33,9 @@ add_executable(NESEmulator src/main.cpp
         src/input_handler/input_handler.cpp
         src/display/debug_display.h
         src/display/debug_display.cpp
+        src/mapper/mapper.h
+        src/mapper/mapper0.h
+        src/mapper/createMapper.h
 )
 target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARY})
 target_link_libraries(${PROJECT_NAME} ${SDL2_IMAGE_LIBRARY})
