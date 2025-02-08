@@ -37,7 +37,7 @@ void CPU::executeNextClock() {
     nmiHappening = false;
   }
 
-  // printf("%04X  %02X %02X %02X   A:%02X X:%02X Y:%02X P:%02X SP:%02X   PPU:%03d,%03d  CYC: %llu  Frame: %d  v = %04X\n", programCounter, readMemory(programCounter), readMemory(programCounter + 1), readMemory(programCounter + 2), accumulator, x, y, convertFlag(), stackPointer, ppu.cycle + 1, ppu.scanline, totalCycle, ppu.frame, ppu.v);
+  if (LOG) printf("%04X  %02X %02X %02X   A:%02X X:%02X Y:%02X P:%02X SP:%02X   PPU:%03d,%03d  CYC: %llu  Frame: %d  v = %04X\n", programCounter, readMemory(programCounter), readMemory(programCounter + 1), readMemory(programCounter + 2), accumulator, x, y, convertFlag(), stackPointer, ppu.cycle + 1, ppu.scanline, totalCycle, ppu.frame, ppu.v);
 
   OpInfo op{ opInfo[readMemory(programCounter)] };
   totalCycle += op.cycle;

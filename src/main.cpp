@@ -1,4 +1,3 @@
-// #define NDEBUG
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
@@ -11,7 +10,6 @@
 #include "./display/display.h"
 #include "ppu/ppu.h"
 #include "cpu/cpu.h"
-#include "initializer/initializer.h"
 #include "display/debug_display.h"
 #include "mapper/createMapper.h"
 
@@ -79,7 +77,7 @@ int main(int argv, char** args) {
     return -1;
   }
 
-  std::string filePath{ "../test_rom/kungfu.nes" };
+  std::string filePath{ "../test_rom/final_fantasy.nes" };
   Mapper* mapper = createMapper(filePath);
   if (mapper == nullptr) {
     printf("Mapper Not Supported\n");
@@ -130,7 +128,7 @@ int main(int argv, char** args) {
 
   DebugDisplay debugDisplay{ppu, debugRenderer, debugTexture};
 
-  // freopen("log.txt", "w", stdout);
+  if (LOG) freopen("log.txt", "w", stdout);
 
   cpu.executeStartUpSequence();
 
@@ -201,6 +199,8 @@ int main(int argv, char** args) {
     auto end{ std::chrono::system_clock::now() };
     // printf("%lld\n", std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
   }
+
+  delete mapper;
 
   return 0;
 }

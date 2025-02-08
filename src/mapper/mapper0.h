@@ -8,15 +8,24 @@ enum Variant {
   NROM256
 };
 
-class Mapper;
+
 class Mapper0 : public Mapper {
 private:
-  Variant variant;
+  Variant variant{};
   std::vector<Byte> ppuNametable;
-  std::vector<Byte> prgRam;
+  std::vector<Byte> prgRam{};
+
+  // Assuming addr is of the range 0x2000 ... 0x2FFF
+  Word mapNametable(Word addr) const {
+    if (nametableArrangement == Vertical) {
+      return addr & 0x800 ? addr % 0x400 + 0x400 : addr % 0x400;
+    } else {
+      return addr % 0x800;
+    }
+  }
 
 public:
-  Mapper0() : Mapper(), ppuNametable(0x1000, 0), prgRam(0x1000, 0) {}
+  Mapper0() : Mapper(), ppuNametable(0x800, 0) {}
 
   std::string initialise(const std::string& fileName) override {
     std::string res{ Mapper::initialise(fileName) };
@@ -27,19 +36,23 @@ public:
     if (chrRamPresent)
       chrRom = std::vector<Byte>(0x2000, 0);
 
+    if (prgRamPresent)
+      prgRam = std::vector<Byte>(0x2000, 0);
+
     return "";
   }
 
   Byte readCPUMemory(Word addr) override {
     switch (addr) {
       case 0x6000 ... 0x7FFF:
-        return prgRam[addr % 0x1000];
+        if (DEBUG && !prgRamPresent) printf("PRG RAM accessed when it is not available\n");
+        return prgRam[addr];
       case 0x8000 ... 0xBFFF:
         return prgRom[addr - 0x8000];
       case 0xC000 ... 0xFFFF:
         return prgRom[variant == NROM128 ? addr - 0xC000 : addr - 0x8000];
       default:
-        printf("End of readCPUMemory reached\n");
+        if (DEBUG) printf("End of readCPUMemory reached\n");
         return 0;
     }
   }
@@ -47,7 +60,8 @@ public:
   void writeCPUMemory(Word addr, Byte input) override {
     switch (addr) {
       case 0x6000 ... 0x7FFF:
-        prgRam[addr % 0x1000] = input;
+        if (DEBUG && !prgRamPresent) printf("PRG RAM accessed when it is not available\n");
+        prgRam[addr] = input;
       case 0x8000 ... 0xBFFF:
         prgRom[addr - 0x8000] = input;
         break;
@@ -55,7 +69,7 @@ public:
         prgRom[variant == NROM128 ? addr - 0xC000 : addr - 0x8000] = input;
         break;
       default:
-        printf("End of writeCPUMemory reached\n");
+        if (DEBUG) printf("End of writeCPUMemory reached\n");
     }
   }
 
@@ -64,15 +78,11 @@ public:
       case 0x0000 ... 0x1FFF:
         return chrRom[addr];
       case 0x2000 ... 0x2FFF:
-        if (nametableArrangement == Vertical) { // Vertical Mirroring
-          return ppuNametable[addr & 0x0400 ? addr - 0x2400 : addr - 0x2000];
-        } else { // Horizontal Mirroring
-          return ppuNametable[addr < 0x2800 ? addr - 0x2000 : addr - 0x2800];
-        }
+        return ppuNametable[mapNametable(addr)];
       case 0x3000 ... 0x3EFF:
-        return ppuNametable[addr - 0x3000];
+        return ppuNametable[mapNametable(addr - 0x1000)];
       default:
-        printf("End of readPPUMemory reached\n");
+        if (DEBUG) printf("End of readPPUMemory reached\n");
         return 0;
     }
   }
@@ -83,17 +93,13 @@ public:
         chrRom[addr] = input;
         break;
       case 0x2000 ... 0x2FFF:
-        if (nametableArrangement == Vertical) { // Vertical Mirroring
-          ppuNametable[addr & 0x0400 ? addr - 0x2400 : addr - 0x2000] = input;
-        } else { // Horizontal Mirroring
-          ppuNametable[addr < 0x2800 ? addr - 0x2000 : addr - 0x2800] = input;
-        }
+        ppuNametable[mapNametable(addr)] = input;
         break;
       case 0x3000 ... 0x3EFF:
-        ppuNametable[addr - 0x3000] = input;
+        ppuNametable[mapNametable(addr - 0x1000)] = input;
         break;
       default:
-        printf("End of writePPUMemory reached\n");
+        if (DEBUG) printf("End of writePPUMemory reached\n");
     }
   }
 };

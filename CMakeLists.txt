@@ -20,7 +20,6 @@ include_directories(${SDL2_TTF_INCLUDE_DIRS})
 
 add_executable(NESEmulator src/main.cpp
         src/constants.h
-        src/initializer/initializer.h
         src/display/display.h
         src/ppu/ppu.h
         src/ppu/ppu.cpp
@@ -36,6 +35,7 @@ add_executable(NESEmulator src/main.cpp
         src/mapper/mapper.h
         src/mapper/mapper0.h
         src/mapper/createMapper.h
+        src/mapper/mapper1.h
 )
 target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARY})
 target_link_libraries(${PROJECT_NAME} ${SDL2_IMAGE_LIBRARY})
@@ -55,7 +55,6 @@ target_link_libraries(PPUTest ${SDL2_LIBRARY})
 
 add_executable(LoadStoreTest src/test/cpu/loadStoreTest.cpp
         src/constants.h
-        src/initializer/initializer.h
         src/display/display.h
         src/ppu/ppu.h
         src/ppu/ppu.cpp
@@ -72,7 +71,6 @@ target_link_libraries(LoadStoreTest ${SDL2_LIBRARY})
 
 add_executable(RegisterTransferTest src/test/cpu/registerTransferTest.cpp
         src/constants.h
-        src/initializer/initializer.h
         src/display/display.h
         src/ppu/ppu.h
         src/ppu/ppu.cpp
@@ -89,7 +87,6 @@ target_link_libraries(RegisterTransferTest ${SDL2_LIBRARY})
 
 add_executable(StackOperationTest src/test/cpu/stackOperationTest.cpp
         src/constants.h
-        src/initializer/initializer.h
         src/display/display.h
         src/ppu/ppu.h
         src/ppu/ppu.cpp
@@ -106,7 +103,6 @@ target_link_libraries(StackOperationTest ${SDL2_LIBRARY})
 
 add_executable(LogicalTest src/test/cpu/logicalTest.cpp
         src/constants.h
-        src/initializer/initializer.h
         src/display/display.h
         src/ppu/ppu.h
         src/ppu/ppu.cpp
@@ -123,7 +119,6 @@ target_link_libraries(LogicalTest ${SDL2_LIBRARY})
 
 add_executable(ArithmeticTest src/test/cpu/arithmeticTest.cpp
         src/constants.h
-        src/initializer/initializer.h
         src/display/display.h
         src/ppu/ppu.h
         src/ppu/ppu.cpp
@@ -140,7 +135,6 @@ target_link_libraries(ArithmeticTest ${SDL2_LIBRARY})
 
 add_executable(IncrementDecrementTest src/test/cpu/incrementDecrementTest.cpp
         src/constants.h
-        src/initializer/initializer.h
         src/display/display.h
         src/ppu/ppu.h
         src/ppu/ppu.cpp
@@ -157,7 +151,6 @@ target_link_libraries(IncrementDecrementTest ${SDL2_LIBRARY})
 
 add_executable(ShiftTest src/test/cpu/shiftTest.cpp
         src/constants.h
-        src/initializer/initializer.h
         src/display/display.h
         src/ppu/ppu.h
         src/ppu/ppu.cpp
@@ -174,7 +167,6 @@ target_link_libraries(ShiftTest ${SDL2_LIBRARY})
 
 add_executable(JumpCallTest src/test/cpu/jumpCallTest.cpp
         src/constants.h
-        src/initializer/initializer.h
         src/display/display.h
         src/ppu/ppu.h
         src/ppu/ppu.cpp
@@ -191,7 +183,6 @@ target_link_libraries(JumpCallTest ${SDL2_LIBRARY})
 
 add_executable(BranchTest src/test/cpu/branchTest.cpp
         src/constants.h
-        src/initializer/initializer.h
         src/display/display.h
         src/ppu/ppu.h
         src/ppu/ppu.cpp
@@ -208,7 +199,6 @@ target_link_libraries(BranchTest ${SDL2_LIBRARY})
 
 add_executable(StatusFlagTest src/test/cpu/statusFlagTest.cpp
         src/constants.h
-        src/initializer/initializer.h
         src/display/display.h
         src/ppu/ppu.h
         src/ppu/ppu.cpp

@@ -2,6 +2,7 @@
 #define NESEMULATOR_CREATEMAPPER_H
 
 #include "mapper0.h"
+#include "mapper1.h"
 
 static Mapper* createMapper(const std::string& fileName) {
   Byte mapperNumber;
@@ -28,6 +29,8 @@ static Mapper* createMapper(const std::string& fileName) {
   switch (mapperNumber) {
     case 0:
       return new Mapper0();
+    case 1:
+      return new Mapper1();
     default:
       printf("Mapper %d not supported\n", mapperNumber);
       return nullptr;

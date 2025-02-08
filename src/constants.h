@@ -4,6 +4,9 @@
 #include <cstdint>
 #include <array>
 
+constexpr int DEBUG = 1;
+constexpr int LOG = 0;
+
 typedef uint8_t Byte;
 typedef uint16_t Word;
 
